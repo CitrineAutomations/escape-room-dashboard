@@ -1,0 +1,40 @@
+room_id,booking_date,hour,is_available,available_slots,room_name,id,business_name,total_capacity,scrape_timestamp,booked_capacity
+FSCH1,2025-06-28,12:00:00,true,7,Front Street Casino Heist,test001,The Exit Games,7,2025-06-27T15:30:00,0
+FSCH1,2025-06-28,13:45:00,true,5,Front Street Casino Heist,test002,The Exit Games,7,2025-06-27T15:30:00,2
+FSCH1,2025-06-28,15:30:00,false,0,Front Street Casino Heist,test003,The Exit Games,7,2025-06-27T15:30:00,7
+FSCH1,2025-06-28,17:15:00,true,3,Front Street Casino Heist,test004,The Exit Games,7,2025-06-27T15:30:00,4
+FSCH1,2025-06-28,19:00:00,false,0,Front Street Casino Heist,test005,The Exit Games,7,2025-06-27T15:30:00,7
+FSCH1,2025-06-28,20:45:00,true,6,Front Street Casino Heist,test006,The Exit Games,7,2025-06-27T15:30:00,1
+DGA2,2025-06-28,11:30:00,false,0,Dog Gone Alley,test007,The Exit Games,5,2025-06-27T15:30:00,5
+DGA2,2025-06-28,13:00:00,true,2,Dog Gone Alley,test008,The Exit Games,5,2025-06-27T15:30:00,3
+DGA2,2025-06-28,14:30:00,false,0,Dog Gone Alley,test009,The Exit Games,5,2025-06-27T15:30:00,5
+DGA2,2025-06-28,16:00:00,true,4,Dog Gone Alley,test010,The Exit Games,5,2025-06-27T15:30:00,1
+DGA2,2025-06-28,17:30:00,true,5,Dog Gone Alley,test011,The Exit Games,5,2025-06-27T15:30:00,0
+DGA2,2025-06-28,19:00:00,true,3,Dog Gone Alley,test012,The Exit Games,5,2025-06-27T15:30:00,2
+DGA2,2025-06-28,20:30:00,true,5,Dog Gone Alley,test013,The Exit Games,5,2025-06-27T15:30:00,0
+DGA2,2025-06-28,22:00:00,true,4,Dog Gone Alley,test014,The Exit Games,5,2025-06-27T15:30:00,1
+WRS3,2025-06-28,11:45:00,true,8,White Rabbit Society,test015,The Exit Games,8,2025-06-27T15:30:00,0
+WRS3,2025-06-28,13:30:00,true,6,White Rabbit Society,test016,The Exit Games,8,2025-06-27T15:30:00,2
+WRS3,2025-06-28,15:15:00,true,8,White Rabbit Society,test017,The Exit Games,8,2025-06-27T15:30:00,0
+WRS3,2025-06-28,17:00:00,true,5,White Rabbit Society,test018,The Exit Games,8,2025-06-27T15:30:00,3
+WRS3,2025-06-28,18:45:00,true,8,White Rabbit Society,test019,The Exit Games,8,2025-06-27T15:30:00,0
+WRS3,2025-06-28,20:30:00,true,7,White Rabbit Society,test020,The Exit Games,8,2025-06-27T15:30:00,1
+WRS3,2025-06-28,22:00:00,true,8,White Rabbit Society,test021,The Exit Games,8,2025-06-27T15:30:00,0
+HNTP4,2025-06-28,12:30:00,true,7,Hidden Needle Tattoo Parlor (Princess Location),test022,The Exit Games,7,2025-06-27T15:30:00,0
+HNTP4,2025-06-28,14:15:00,true,4,Hidden Needle Tattoo Parlor (Princess Location),test023,The Exit Games,7,2025-06-27T15:30:00,3
+HNTP4,2025-06-28,16:00:00,true,7,Hidden Needle Tattoo Parlor (Princess Location),test024,The Exit Games,7,2025-06-27T15:30:00,0
+HNTP4,2025-06-28,17:45:00,true,2,Hidden Needle Tattoo Parlor (Princess Location),test025,The Exit Games,7,2025-06-27T15:30:00,5
+HNTP4,2025-06-28,19:30:00,true,7,Hidden Needle Tattoo Parlor (Princess Location),test026,The Exit Games,7,2025-06-27T15:30:00,0
+HNTP4,2025-06-28,21:15:00,true,6,Hidden Needle Tattoo Parlor (Princess Location),test027,The Exit Games,7,2025-06-27T15:30:00,1
+HRS5,2025-06-28,12:00:00,true,6,Hangover at Riddler State (Princess Location),test028,The Exit Games,6,2025-06-27T15:30:00,0
+HRS5,2025-06-28,13:45:00,true,3,Hangover at Riddler State (Princess Location),test029,The Exit Games,6,2025-06-27T15:30:00,3
+HRS5,2025-06-28,15:30:00,true,6,Hangover at Riddler State (Princess Location),test030,The Exit Games,6,2025-06-27T15:30:00,0
+HRS5,2025-06-28,17:15:00,true,4,Hangover at Riddler State (Princess Location),test031,The Exit Games,6,2025-06-27T15:30:00,2
+HRS5,2025-06-28,19:00:00,true,6,Hangover at Riddler State (Princess Location),test032,The Exit Games,6,2025-06-27T15:30:00,0
+HRS5,2025-06-28,20:45:00,false,0,Hangover at Riddler State (Princess Location),test033,The Exit Games,6,2025-06-27T15:30:00,6
+ONV6,2025-06-28,12:15:00,true,6,Outage: No Vacancy (Princess Location),test034,The Exit Games,6,2025-06-27T15:30:00,0
+ONV6,2025-06-28,14:00:00,false,0,Outage: No Vacancy (Princess Location),test035,The Exit Games,6,2025-06-27T15:30:00,6
+ONV6,2025-06-28,15:45:00,true,4,Outage: No Vacancy (Princess Location),test036,The Exit Games,6,2025-06-27T15:30:00,2
+ONV6,2025-06-28,17:30:00,true,6,Outage: No Vacancy (Princess Location),test037,The Exit Games,6,2025-06-27T15:30:00,0
+ONV6,2025-06-28,19:15:00,false,0,Outage: No Vacancy (Princess Location),test038,The Exit Games,6,2025-06-27T15:30:00,6
+ONV6,2025-06-28,21:00:00,true,5,Outage: No Vacancy (Princess Location),test039,The Exit Games,6,2025-06-27T15:30:00,1 

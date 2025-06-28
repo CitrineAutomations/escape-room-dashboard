@@ -1,0 +1,81 @@
+room_id,booking_date,hour,is_available,available_slots,room_name,id,business_name,total_capacity,scrape_timestamp,booked_capacity
+FSCH1,2025-03-01,11:00:00,true,7,Front Street Casino Heist,fsch_20250301_1100,The Exit Games,7,2025-06-27T15:30:00,0
+FSCH1,2025-03-01,12:45:00,true,5,Front Street Casino Heist,fsch_20250301_1245,The Exit Games,7,2025-06-27T15:30:00,2
+FSCH1,2025-03-01,14:30:00,false,0,Front Street Casino Heist,fsch_20250301_1430,The Exit Games,7,2025-06-27T15:30:00,7
+FSCH1,2025-03-01,16:15:00,true,3,Front Street Casino Heist,fsch_20250301_1615,The Exit Games,7,2025-06-27T15:30:00,4
+FSCH1,2025-03-01,18:00:00,false,0,Front Street Casino Heist,fsch_20250301_1800,The Exit Games,7,2025-06-27T15:30:00,7
+FSCH1,2025-03-01,19:45:00,true,6,Front Street Casino Heist,fsch_20250301_1945,The Exit Games,7,2025-06-27T15:30:00,1
+FSCH1,2025-03-01,21:30:00,true,7,Front Street Casino Heist,fsch_20250301_2130,The Exit Games,7,2025-06-27T15:30:00,0
+FSCH1,2025-03-02,11:00:00,true,4,Front Street Casino Heist,fsch_20250302_1100,The Exit Games,7,2025-06-27T15:30:00,3
+FSCH1,2025-03-02,12:45:00,false,0,Front Street Casino Heist,fsch_20250302_1245,The Exit Games,7,2025-06-27T15:30:00,7
+FSCH1,2025-03-02,14:30:00,true,2,Front Street Casino Heist,fsch_20250302_1430,The Exit Games,7,2025-06-27T15:30:00,5
+FSCH1,2025-03-02,16:15:00,true,7,Front Street Casino Heist,fsch_20250302_1615,The Exit Games,7,2025-06-27T15:30:00,0
+FSCH1,2025-03-02,18:00:00,true,5,Front Street Casino Heist,fsch_20250302_1800,The Exit Games,7,2025-06-27T15:30:00,2
+FSCH1,2025-03-02,19:45:00,false,0,Front Street Casino Heist,fsch_20250302_1945,The Exit Games,7,2025-06-27T15:30:00,7
+FSCH1,2025-03-02,21:30:00,true,6,Front Street Casino Heist,fsch_20250302_2130,The Exit Games,7,2025-06-27T15:30:00,1
+DGA2,2025-03-01,11:30:00,false,0,Dog Gone Alley,dga_20250301_1130,The Exit Games,5,2025-06-27T15:30:00,5
+DGA2,2025-03-01,13:00:00,true,2,Dog Gone Alley,dga_20250301_1300,The Exit Games,5,2025-06-27T15:30:00,3
+DGA2,2025-03-01,14:30:00,false,0,Dog Gone Alley,dga_20250301_1430,The Exit Games,5,2025-06-27T15:30:00,5
+DGA2,2025-03-01,16:00:00,true,4,Dog Gone Alley,dga_20250301_1600,The Exit Games,5,2025-06-27T15:30:00,1
+DGA2,2025-03-01,17:30:00,true,5,Dog Gone Alley,dga_20250301_1730,The Exit Games,5,2025-06-27T15:30:00,0
+DGA2,2025-03-01,19:00:00,true,3,Dog Gone Alley,dga_20250301_1900,The Exit Games,5,2025-06-27T15:30:00,2
+DGA2,2025-03-01,20:30:00,true,5,Dog Gone Alley,dga_20250301_2030,The Exit Games,5,2025-06-27T15:30:00,0
+DGA2,2025-03-01,22:00:00,true,4,Dog Gone Alley,dga_20250301_2200,The Exit Games,5,2025-06-27T15:30:00,1
+DGA2,2025-03-02,11:30:00,true,5,Dog Gone Alley,dga_20250302_1130,The Exit Games,5,2025-06-27T15:30:00,0
+DGA2,2025-03-02,13:00:00,true,1,Dog Gone Alley,dga_20250302_1300,The Exit Games,5,2025-06-27T15:30:00,4
+DGA2,2025-03-02,14:30:00,true,3,Dog Gone Alley,dga_20250302_1430,The Exit Games,5,2025-06-27T15:30:00,2
+DGA2,2025-03-02,16:00:00,false,0,Dog Gone Alley,dga_20250302_1600,The Exit Games,5,2025-06-27T15:30:00,5
+DGA2,2025-03-02,17:30:00,true,5,Dog Gone Alley,dga_20250302_1730,The Exit Games,5,2025-06-27T15:30:00,0
+DGA2,2025-03-02,19:00:00,true,2,Dog Gone Alley,dga_20250302_1900,The Exit Games,5,2025-06-27T15:30:00,3
+DGA2,2025-03-02,20:30:00,true,4,Dog Gone Alley,dga_20250302_2030,The Exit Games,5,2025-06-27T15:30:00,1
+DGA2,2025-03-02,22:00:00,true,5,Dog Gone Alley,dga_20250302_2200,The Exit Games,5,2025-06-27T15:30:00,0
+WRS3,2025-03-01,11:45:00,true,8,White Rabbit Society,wrs_20250301_1145,The Exit Games,8,2025-06-27T15:30:00,0
+WRS3,2025-03-01,13:30:00,true,6,White Rabbit Society,wrs_20250301_1330,The Exit Games,8,2025-06-27T15:30:00,2
+WRS3,2025-03-01,15:15:00,true,8,White Rabbit Society,wrs_20250301_1515,The Exit Games,8,2025-06-27T15:30:00,0
+WRS3,2025-03-01,17:00:00,true,5,White Rabbit Society,wrs_20250301_1700,The Exit Games,8,2025-06-27T15:30:00,3
+WRS3,2025-03-01,18:45:00,true,8,White Rabbit Society,wrs_20250301_1845,The Exit Games,8,2025-06-27T15:30:00,0
+WRS3,2025-03-01,20:30:00,true,7,White Rabbit Society,wrs_20250301_2030,The Exit Games,8,2025-06-27T15:30:00,1
+WRS3,2025-03-01,22:00:00,true,8,White Rabbit Society,wrs_20250301_2200,The Exit Games,8,2025-06-27T15:30:00,0
+WRS3,2025-03-02,11:45:00,true,4,White Rabbit Society,wrs_20250302_1145,The Exit Games,8,2025-06-27T15:30:00,4
+WRS3,2025-03-02,13:30:00,true,8,White Rabbit Society,wrs_20250302_1330,The Exit Games,8,2025-06-27T15:30:00,0
+WRS3,2025-03-02,15:15:00,true,3,White Rabbit Society,wrs_20250302_1515,The Exit Games,8,2025-06-27T15:30:00,5
+WRS3,2025-03-02,17:00:00,false,0,White Rabbit Society,wrs_20250302_1700,The Exit Games,8,2025-06-27T15:30:00,8
+WRS3,2025-03-02,18:45:00,true,6,White Rabbit Society,wrs_20250302_1845,The Exit Games,8,2025-06-27T15:30:00,2
+WRS3,2025-03-02,20:30:00,true,8,White Rabbit Society,wrs_20250302_2030,The Exit Games,8,2025-06-27T15:30:00,0
+WRS3,2025-03-02,22:00:00,true,5,White Rabbit Society,wrs_20250302_2200,The Exit Games,8,2025-06-27T15:30:00,3
+HNTP4,2025-03-01,12:30:00,true,7,Hidden Needle Tattoo Parlor (Princess Location),hntp_20250301_1230,The Exit Games,7,2025-06-27T15:30:00,0
+HNTP4,2025-03-01,14:15:00,true,4,Hidden Needle Tattoo Parlor (Princess Location),hntp_20250301_1415,The Exit Games,7,2025-06-27T15:30:00,3
+HNTP4,2025-03-01,16:00:00,true,7,Hidden Needle Tattoo Parlor (Princess Location),hntp_20250301_1600,The Exit Games,7,2025-06-27T15:30:00,0
+HNTP4,2025-03-01,17:45:00,true,2,Hidden Needle Tattoo Parlor (Princess Location),hntp_20250301_1745,The Exit Games,7,2025-06-27T15:30:00,5
+HNTP4,2025-03-01,19:30:00,true,7,Hidden Needle Tattoo Parlor (Princess Location),hntp_20250301_1930,The Exit Games,7,2025-06-27T15:30:00,0
+HNTP4,2025-03-01,21:15:00,true,6,Hidden Needle Tattoo Parlor (Princess Location),hntp_20250301_2115,The Exit Games,7,2025-06-27T15:30:00,1
+HNTP4,2025-03-02,12:30:00,false,0,Hidden Needle Tattoo Parlor (Princess Location),hntp_20250302_1230,The Exit Games,7,2025-06-27T15:30:00,7
+HNTP4,2025-03-02,14:15:00,true,5,Hidden Needle Tattoo Parlor (Princess Location),hntp_20250302_1415,The Exit Games,7,2025-06-27T15:30:00,2
+HNTP4,2025-03-02,16:00:00,true,7,Hidden Needle Tattoo Parlor (Princess Location),hntp_20250302_1600,The Exit Games,7,2025-06-27T15:30:00,0
+HNTP4,2025-03-02,17:45:00,true,3,Hidden Needle Tattoo Parlor (Princess Location),hntp_20250302_1745,The Exit Games,7,2025-06-27T15:30:00,4
+HNTP4,2025-03-02,19:30:00,true,6,Hidden Needle Tattoo Parlor (Princess Location),hntp_20250302_1930,The Exit Games,7,2025-06-27T15:30:00,1
+HNTP4,2025-03-02,21:15:00,true,7,Hidden Needle Tattoo Parlor (Princess Location),hntp_20250302_2115,The Exit Games,7,2025-06-27T15:30:00,0
+HRS5,2025-03-01,12:00:00,true,6,Hangover at Riddler State (Princess Location),hrs_20250301_1200,The Exit Games,6,2025-06-27T15:30:00,0
+HRS5,2025-03-01,13:45:00,true,3,Hangover at Riddler State (Princess Location),hrs_20250301_1345,The Exit Games,6,2025-06-27T15:30:00,3
+HRS5,2025-03-01,15:30:00,true,6,Hangover at Riddler State (Princess Location),hrs_20250301_1530,The Exit Games,6,2025-06-27T15:30:00,0
+HRS5,2025-03-01,17:15:00,true,4,Hangover at Riddler State (Princess Location),hrs_20250301_1715,The Exit Games,6,2025-06-27T15:30:00,2
+HRS5,2025-03-01,19:00:00,true,6,Hangover at Riddler State (Princess Location),hrs_20250301_1900,The Exit Games,6,2025-06-27T15:30:00,0
+HRS5,2025-03-01,20:45:00,false,0,Hangover at Riddler State (Princess Location),hrs_20250301_2045,The Exit Games,6,2025-06-27T15:30:00,6
+HRS5,2025-03-02,12:00:00,true,2,Hangover at Riddler State (Princess Location),hrs_20250302_1200,The Exit Games,6,2025-06-27T15:30:00,4
+HRS5,2025-03-02,13:45:00,true,6,Hangover at Riddler State (Princess Location),hrs_20250302_1345,The Exit Games,6,2025-06-27T15:30:00,0
+HRS5,2025-03-02,15:30:00,true,1,Hangover at Riddler State (Princess Location),hrs_20250302_1530,The Exit Games,6,2025-06-27T15:30:00,5
+HRS5,2025-03-02,17:15:00,false,0,Hangover at Riddler State (Princess Location),hrs_20250302_1715,The Exit Games,6,2025-06-27T15:30:00,6
+HRS5,2025-03-02,19:00:00,true,5,Hangover at Riddler State (Princess Location),hrs_20250302_1900,The Exit Games,6,2025-06-27T15:30:00,1
+HRS5,2025-03-02,20:45:00,true,6,Hangover at Riddler State (Princess Location),hrs_20250302_2045,The Exit Games,6,2025-06-27T15:30:00,0
+ONV6,2025-03-01,12:15:00,true,6,Outage: No Vacancy (Princess Location),onv_20250301_1215,The Exit Games,6,2025-06-27T15:30:00,0
+ONV6,2025-03-01,14:00:00,false,0,Outage: No Vacancy (Princess Location),onv_20250301_1400,The Exit Games,6,2025-06-27T15:30:00,6
+ONV6,2025-03-01,15:45:00,true,4,Outage: No Vacancy (Princess Location),onv_20250301_1545,The Exit Games,6,2025-06-27T15:30:00,2
+ONV6,2025-03-01,17:30:00,true,6,Outage: No Vacancy (Princess Location),onv_20250301_1730,The Exit Games,6,2025-06-27T15:30:00,0
+ONV6,2025-03-01,19:15:00,false,0,Outage: No Vacancy (Princess Location),onv_20250301_1915,The Exit Games,6,2025-06-27T15:30:00,6
+ONV6,2025-03-01,21:00:00,true,5,Outage: No Vacancy (Princess Location),onv_20250301_2100,The Exit Games,6,2025-06-27T15:30:00,1
+ONV6,2025-03-02,12:15:00,true,3,Outage: No Vacancy (Princess Location),onv_20250302_1215,The Exit Games,6,2025-06-27T15:30:00,3
+ONV6,2025-03-02,14:00:00,true,6,Outage: No Vacancy (Princess Location),onv_20250302_1400,The Exit Games,6,2025-06-27T15:30:00,0
+ONV6,2025-03-02,15:45:00,false,0,Outage: No Vacancy (Princess Location),onv_20250302_1545,The Exit Games,6,2025-06-27T15:30:00,6
+ONV6,2025-03-02,17:30:00,true,2,Outage: No Vacancy (Princess Location),onv_20250302_1730,The Exit Games,6,2025-06-27T15:30:00,4
+ONV6,2025-03-02,19:15:00,true,6,Outage: No Vacancy (Princess Location),onv_20250302_1915,The Exit Games,6,2025-06-27T15:30:00,0
+ONV6,2025-03-02,21:00:00,true,4,Outage: No Vacancy (Princess Location),onv_20250302_2100,The Exit Games,6,2025-06-27T15:30:00,2 
