@@ -46,11 +46,11 @@ export default function TestDuplicates() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Duplicate "The Exit Games" Entries</h1>
+      <h1 className="text-3xl font-bold">Duplicate &quot;The Exit Games&quot; Entries</h1>
       
       <Card>
         <CardHeader>
-          <CardTitle>Found {duplicates.length} entries for "The Exit Games"</CardTitle>
+          <CardTitle>Found {duplicates.length} entries for &quot;The Exit Games&quot;</CardTitle>
         </CardHeader>
         <CardContent>
           {duplicates.length > 0 ? (
@@ -94,7 +94,7 @@ export default function TestDuplicates() {
               <strong>Fix Applied:</strong> The business dashboard has been updated to handle duplicate entries.
             </p>
             <p className="text-blue-700 text-sm mt-2">
-              The dashboard will now use the first "The Exit Games" entry it finds instead of failing.
+              The dashboard will now use the first &quot;The Exit Games&quot; entry it finds instead of failing.
             </p>
             <p className="text-blue-700 text-sm mt-2">
               <strong>Next:</strong> Try visiting the business dashboard again at:

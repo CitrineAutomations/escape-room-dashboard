@@ -94,14 +94,14 @@ export default function TestExitGames() {
     return (
       <div className="p-6">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-        <p className="text-center mt-4">Testing "The Exit Games" data...</p>
+        <p className="text-center mt-4">Testing &quot;The Exit Games&quot; data...</p>
       </div>
     )
   }
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">"The Exit Games" Data Test</h1>
+      <h1 className="text-3xl font-bold">&quot;The Exit Games&quot; Data Test</h1>
 
       {/* Business Info */}
       {businessData && (
@@ -147,7 +147,7 @@ export default function TestExitGames() {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground">No rooms found for "The Exit Games"</p>
+            <p className="text-muted-foreground">No rooms found for &quot;The Exit Games&quot;</p>
           )}
         </CardContent>
       </Card>
@@ -182,15 +182,15 @@ export default function TestExitGames() {
           ) : (
             <div className="p-4 bg-yellow-50 rounded-lg">
               <p className="text-yellow-800">
-                <strong>No room slots found for "The Exit Games"</strong>
+                <strong>No room slots found for &quot;The Exit Games&quot;</strong>
               </p>
               <p className="text-yellow-700 text-sm mt-2">
                 This means either:
               </p>
               <ul className="list-disc list-inside text-sm text-yellow-700 mt-1">
-                <li>The N8N workflow hasn't created room slots for this business yet</li>
+                <li>The N8N workflow hasn&apos;t created room slots for this business yet</li>
                 <li>The business name in the Room Slots table is different</li>
-                <li>There's a data synchronization issue</li>
+                                  <li>There&apos;s a data synchronization issue</li>
               </ul>
             </div>
           )}
