@@ -379,7 +379,7 @@ export default function BusinessDashboard() {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Business Not Found</h2>
           <p className="text-muted-foreground mb-4">
-            The business "{businessName}" could not be found in the database.
+            The business &quot;{businessName}&quot; could not be found in the database.
           </p>
           <Link href="/dashboard/businesses">
             <Button>

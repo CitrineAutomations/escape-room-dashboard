@@ -255,7 +255,7 @@ export default function DebugDataPage() {
               <div className="grid grid-cols-2 gap-2">
                 {debugInfo.uniqueBusinessNames.map((name: string, index: number) => (
                   <div key={index} className="p-2 bg-gray-50 rounded">
-                    "{name}"
+                    &quot;{name}&quot;
                   </div>
                 ))}
               </div>
@@ -343,8 +343,8 @@ export default function DebugDataPage() {
                     {debugInfo.businessHoursTest.businessMatching?.map((match: any, index: number) => (
                       <div key={index} className={`p-2 rounded text-sm ${match.hasBusinessHours ? 'bg-green-50' : 'bg-red-50'}`}>
                         <div className="font-mono">
-                          <span className="font-semibold">DB:</span> "{match.databaseName}" → 
-                          <span className="font-semibold"> Normalized:</span> "{match.normalizedName}" → 
+                          <span className="font-semibold">DB:</span> &quot;{match.databaseName}&quot; → 
+                          <span className="font-semibold"> Normalized:</span> &quot;{match.normalizedName}&quot; → 
                           <span className="font-semibold"> Config:</span> {match.matchedConfig}
                         </div>
                       </div>

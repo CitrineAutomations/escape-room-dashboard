@@ -242,7 +242,7 @@ Would you like to try the suggested queries or explore the demo features?`,
             content: `I encountered an error processing your request: ${error instanceof Error ? error.message : 'Unknown error'}. 
 
 Please make sure:
-• N8N workflow is running at ${webhookUrl}
+• N8N workflow is running at ${n8nWebhookUrl}
 • Webhook endpoint is accessible
 • Network connection is stable
 
@@ -399,7 +399,7 @@ You can update the webhook URL in the configuration section above if needed.`,
                   Chat
                 </CardTitle>
                 <CardDescription>
-                  Ask questions like "What's the utilization rate for Green Light Escape this week?"
+                  Ask questions like &quot;What&apos;s the utilization rate for Green Light Escape this week?&quot;
                 </CardDescription>
               </CardHeader>
               
@@ -534,7 +534,7 @@ You can update the webhook URL in the configuration section above if needed.`,
                             </Badge>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
-                            "{suggestion.query}"
+                            &quot;{suggestion.query}&quot;
                           </p>
                         </div>
                       </div>
@@ -565,7 +565,7 @@ You can update the webhook URL in the configuration section above if needed.`,
                 <div>
                   <h4 className="font-medium">Time Ranges</h4>
                   <p className="text-muted-foreground">
-                    Specify periods like "this week", "last 30 days", "today"
+                    Specify periods like &quot;this week&quot;, &quot;last 30 days&quot;, &quot;today&quot;
                   </p>
                 </div>
               </CardContent>

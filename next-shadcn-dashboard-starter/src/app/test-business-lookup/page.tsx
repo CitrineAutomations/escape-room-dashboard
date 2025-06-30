@@ -160,7 +160,7 @@ export default function TestBusinessLookup() {
               disabled={loading}
               className="w-full"
             >
-              Test "The Exit Games"
+              Test &quot;The Exit Games&quot;
             </Button>
             <Button 
               onClick={() => testBusinessLookup('The Exit Games\t')}
@@ -168,7 +168,7 @@ export default function TestBusinessLookup() {
               variant="outline"
               className="w-full"
             >
-              Test "The Exit Games" with tab character
+              Test &quot;The Exit Games&quot; with tab character
             </Button>
             <Button 
               onClick={() => testBusinessLookup('The Exit Games ')}
@@ -176,7 +176,7 @@ export default function TestBusinessLookup() {
               variant="outline"
               className="w-full"
             >
-              Test "The Exit Games" with trailing space
+              Test &quot;The Exit Games&quot; with trailing space
             </Button>
           </div>
         </CardContent>

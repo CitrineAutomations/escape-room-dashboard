@@ -237,7 +237,7 @@ export default function TestConstraintsPage() {
             <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
               <li>✅ <strong>Success:</strong> Both records insert without constraint violations</li>
               <li>✅ Query finds 2 records for the same slot with different timestamps</li>
-              <li>❌ <strong>Failure:</strong> "duplicate key value violates unique constraint" error</li>
+              <li>❌ <strong>Failure:</strong> &quot;duplicate key value violates unique constraint&quot; error</li>
             </ul>
           </div>
           <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
