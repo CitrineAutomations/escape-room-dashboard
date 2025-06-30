@@ -16,8 +16,8 @@ const META_THEME_COLORS = {
 };
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  title: 'Escape Room Dashboard',
+  description: 'Real-time analytics and management dashboard for escape room businesses'
 };
 
 export const viewport: Viewport = {

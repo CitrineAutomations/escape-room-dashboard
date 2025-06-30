@@ -14,59 +14,50 @@ export type Product = {
 //Info: The following data is used for the sidebar navigation and Cmd K bar.
 export const navItems: NavItem[] = [
   {
-    title: 'Dashboard',
-    url: '/dashboard/escape-rooms',
-    icon: 'dashboard',
-    isActive: true,
-    shortcut: ['d', 'd'],
-    items: [] // Empty array as there are no child items for Dashboard
-  },
-  {
-    title: 'Overview',
-    url: '/dashboard/overview',
-    icon: 'dashboard', // Using dashboard icon for overview/analytics
-    shortcut: ['o', 'v'],
-    isActive: false,
-    items: [] // No child items
-  },
-  {
     title: 'Businesses',
     url: '#', // Placeholder as there is no direct link for the parent
-    icon: 'billing',
-    isActive: false,
-    // DYNAMIC: This will be replaced at runtime with all businesses from Supabase
+    icon: 'settings',
+    isActive: true,
     items: [
       {
         title: 'All Businesses',
         url: '/dashboard/businesses',
-        icon: 'dashboard',
+        icon: 'settings',
         shortcut: ['b', 'a']
       },
-      // Businesses will be injected here at runtime
-      // Example:
-      // { title: 'Acme Inc', url: '/dashboard/businesses/1', icon: 'building' },
-      // { title: 'Beta Corp', url: '/dashboard/businesses/2', icon: 'building' },
+      {
+        title: 'Cracked It',
+        url: '/dashboard/businesses/Cracked%20It',
+        icon: 'settings',
+        shortcut: ['b', 'c']
+      },
+      {
+        title: 'Green Light Escape',
+        url: '/dashboard/businesses/Green%20Light%20Escape',
+        icon: 'settings',
+        shortcut: ['b', 'g']
+      },
+      {
+        title: 'iEscape Rooms',
+        url: '/dashboard/businesses/iEscape%20Rooms',
+        icon: 'settings',
+        shortcut: ['b', 'i']
+      },
+      {
+        title: 'The Exit Games',
+        url: '/dashboard/businesses/The%20Exit%20Games',
+        icon: 'settings',
+        shortcut: ['b', 't']
+      }
     ]
   },
   {
-    title: 'Rooms',
-    url: '#', // Placeholder as there is no direct link for the parent
-    icon: 'dashboard',
+    title: 'AI Assistant',
+    url: '/dashboard/ai-assistant',
+    icon: 'brain',
     isActive: false,
-    items: [
-      {
-        title: 'Room Performance',
-        url: '/dashboard/rooms',
-        icon: 'dashboard',
-        shortcut: ['r', 'p']
-      },
-      {
-        title: 'Room Settings',
-        url: '/dashboard/rooms/settings',
-        icon: 'settings',
-        shortcut: ['r', 's']
-      }
-    ]
+    shortcut: ['a', 'i'],
+    items: [] // No child items
   },
   {
     title: 'Account',

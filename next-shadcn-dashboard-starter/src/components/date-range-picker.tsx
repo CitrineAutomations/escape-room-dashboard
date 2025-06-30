@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Calendar } from '@/components/ui/calendar'
 import { Button } from '@/components/ui/button'
 import { IconCalendar, IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
@@ -105,7 +105,28 @@ const presetRanges = [
 
 export function DateRangePicker({ dateRange, onDateRangeChange, className }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [selectedPreset, setSelectedPreset] = useState<string>('last30days')
+  const [selectedPreset, setSelectedPreset] = useState<string>('custom')
+
+  // Determine which preset matches the current dateRange
+  const getCurrentPreset = () => {
+    if (!dateRange.from || !dateRange.to) return 'custom'
+    
+    for (const preset of presetRanges) {
+      if (preset.value === 'custom') continue
+      const presetRange = preset.getRange()
+      if (presetRange.from && presetRange.to &&
+          dateRange.from.getTime() === presetRange.from.getTime() &&
+          dateRange.to.getTime() === presetRange.to.getTime()) {
+        return preset.value
+      }
+    }
+    return 'custom'
+  }
+
+  // Update selectedPreset when dateRange changes
+  React.useEffect(() => {
+    setSelectedPreset(getCurrentPreset())
+  }, [dateRange])
 
   const handlePresetChange = (preset: string) => {
     setSelectedPreset(preset)
