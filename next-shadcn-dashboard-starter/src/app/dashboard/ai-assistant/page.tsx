@@ -381,7 +381,7 @@ You can update the webhook URL in the configuration section above if needed.`,
               {!isWebhookSaved && (
                 <div className="text-sm text-muted-foreground">
                   <p>💡 <strong>Your webhook URL:</strong> https://escaperooms.app.n8n.cloud/webhook-test/9437ada2-f85f-4dc0-8294-b2e2d9ff1ea6</p>
-                  <p>Click "Save" to store this URL in your browser for future sessions.</p>
+                  <p>Click &quot;Save&quot; to store this URL in your browser for future sessions.</p>
                 </div>
               )}
             </div>
