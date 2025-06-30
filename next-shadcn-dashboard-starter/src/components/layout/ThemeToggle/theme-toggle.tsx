@@ -8,6 +8,11 @@ import { Button } from '@/components/ui/button';
 
 export function ModeToggle() {
   const { setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleThemeToggle = React.useCallback(
     (e?: React.MouseEvent) => {
@@ -31,6 +36,21 @@ export function ModeToggle() {
     },
     [resolvedTheme, setTheme]
   );
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <Button
+        variant='secondary'
+        size='icon'
+        className='group/toggle size-8'
+        disabled
+      >
+        <IconBrightness />
+        <span className='sr-only'>Toggle theme</span>
+      </Button>
+    );
+  }
 
   return (
     <Button

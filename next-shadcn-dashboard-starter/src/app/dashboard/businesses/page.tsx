@@ -56,10 +56,10 @@ export default function BusinessesPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const [utilizationFilter, setUtilizationFilter] = useState<string>('all')
   
-  // Date range state
+  // Date range state - start with undefined to auto-detect from data
   const [dateRange, setDateRange] = useState<DateRange>({
-    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-    to: new Date()
+    from: undefined,
+    to: undefined
   })
 
   const { toast } = useToast()
@@ -73,35 +73,104 @@ export default function BusinessesPage() {
         setLoading(true)
       }
 
-      // Format dates for API calls
-      const startDate = dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined
-      const endDate = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined
-
-      console.log(`🔍 Fetching business locations and rooms data...`)
+      console.log(`🔍 Loading business data...`)
+      
+      // Get basic business and room data first (without date filters)
       const [businessData, roomData] = await Promise.all([
         EscapeRoomService.getBusinessLocations(),
         EscapeRoomService.getRooms()
       ])
       console.log(`✅ Fetched ${businessData.length} businesses and ${roomData.length} rooms`)
 
-      // Calculate business metrics with date filtering
+      // Check if we have any data at all
+      if (businessData.length === 0) {
+        throw new Error('No business data found in database')
+      }
+
+      // Get a sample of available room slots to determine date ranges
+      console.log(`🔍 Checking available data in database...`)
+      const sampleSlots = await EscapeRoomService.getRoomSlots()
+      
+      if (sampleSlots.length === 0) {
+        console.warn('⚠️ No room slots data available')
+        // Use business data without metrics
+        const businessMetrics = businessData.map(business => ({
+          ...business,
+          room_count: roomData.filter(room => room.business_name === business.business_name).length,
+          total_slots: undefined,
+          total_bookings: undefined,
+          utilization_rate: undefined
+        }))
+        
+        setBusinesses(businessMetrics)
+        setRooms(roomData.map(room => ({ ...room, total_slots: undefined, booked_slots: undefined, utilization_rate: undefined })))
+        setUsingMockData(false)
+        setLastUpdated(new Date())
+        
+        setError('Business data loaded but no booking metrics available. Check if Room Slots data exists in database.')
+        return
+      }
+
+      // Find the actual date range of available data
+      const allDates = sampleSlots.map(slot => slot.booking_date).sort()
+      const earliestDate = allDates[0]
+      const latestDate = allDates[allDates.length - 1]
+      
+      console.log(`📅 Available data range: ${earliestDate} to ${latestDate}`)
+      console.log(`📅 Sample slots: ${sampleSlots.length}`)
+
+      // Use flexible date filtering - if user's range is outside available data, use available range
+      let actualStartDate = dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : earliestDate
+      let actualEndDate = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : latestDate
+
+      // If this is the first load or user's date range is outside available data, use available range
+      if (!dateRange.from || !dateRange.to || actualStartDate > latestDate || actualEndDate < earliestDate) {
+        if (dateRange.from || dateRange.to) {
+          console.warn(`⚠️ User date range (${actualStartDate} to ${actualEndDate}) is outside available data range (${earliestDate} to ${latestDate})`)
+        }
+        actualStartDate = earliestDate
+        actualEndDate = latestDate
+        
+        // Update the date range picker to show the actual available range
+        setDateRange({
+          from: new Date(earliestDate),
+          to: new Date(latestDate)
+        })
+        
+        if (dateRange.from || dateRange.to) {
+          toast({
+            title: "Date Range Adjusted",
+            description: `Using available data range: ${earliestDate} to ${latestDate}`,
+            variant: "destructive"
+          })
+        }
+      }
+
+      console.log(`🔍 Using date range: ${actualStartDate} to ${actualEndDate}`)
+
+      // Calculate business metrics with the actual available date range
       const businessMetrics = await Promise.all(
         businessData.map(async (business) => {
           try {
-            console.log(`🔍 Fetching business summary for ${business.business_name} (${startDate} to ${endDate})`)
-            const summary = await EscapeRoomService.getBusinessSummary(startDate, endDate, business.business_name)
-            console.log(`✅ Business summary for ${business.business_name}:`, summary)
+            // Get room slots for this business in the date range
+            const businessSlots = await EscapeRoomService.getRoomSlots(actualStartDate, actualEndDate, business.business_name)
+            
+            // Calculate metrics based on actual slot data
+            const totalSlots = businessSlots.length
+            const bookedSlots = businessSlots.filter(slot => !slot.is_available || slot.available_slots === 0).length
+            const utilizationRate = totalSlots > 0 ? (bookedSlots / totalSlots) * 100 : 0
+            
+            console.log(`✅ ${business.business_name}: ${totalSlots} slots, ${bookedSlots} booked (${utilizationRate.toFixed(1)}% utilization)`)
+            
             return {
               ...business,
               room_count: roomData.filter(room => room.business_name === business.business_name).length,
-              total_slots: summary.total_slots,
-              total_bookings: summary.total_bookings,
-              utilization_rate: summary.overall_utilization
+              total_slots: totalSlots,
+              total_bookings: bookedSlots,
+              utilization_rate: utilizationRate
             }
           } catch (error) {
-            console.error(`❌ Failed to get summary for ${business.business_name}:`, error)
-            console.error(`   Error details:`, error instanceof Error ? error.message : error)
-            console.error(`   Date range: ${startDate} to ${endDate}`)
+            console.error(`❌ Failed to get data for ${business.business_name}:`, error)
             return {
               ...business,
               room_count: roomData.filter(room => room.business_name === business.business_name).length,
@@ -113,17 +182,23 @@ export default function BusinessesPage() {
         })
       )
 
-      // Calculate room metrics with date filtering
+      // Calculate room metrics
       const roomMetrics = await Promise.all(
         roomData.map(async (room) => {
           try {
-            const metrics = await EscapeRoomService.getRoomMetrics(startDate, endDate, room.business_name)
-            const roomMetric = metrics.find(m => m.room_id === room.room_id)
+            // Get room slots for this specific room in the date range
+            const roomSlots = await EscapeRoomService.getRoomSlots(actualStartDate, actualEndDate, room.business_name)
+            const thisRoomSlots = roomSlots.filter(slot => slot.room_id === room.room_id)
+            
+            const totalSlots = thisRoomSlots.length
+            const bookedSlots = thisRoomSlots.filter(slot => !slot.is_available || slot.available_slots === 0).length
+            const utilizationRate = totalSlots > 0 ? (bookedSlots / totalSlots) * 100 : 0
+            
             return {
               ...room,
-              total_slots: roomMetric?.total_slots || 0,
-              booked_slots: roomMetric?.booked_slots || 0,
-              utilization_rate: roomMetric?.utilization_rate || 0
+              total_slots: totalSlots,
+              booked_slots: bookedSlots,
+              utilization_rate: utilizationRate
             }
           } catch (error) {
             console.error(`❌ Failed to get metrics for room ${room.room_name}:`, error)
@@ -142,85 +217,27 @@ export default function BusinessesPage() {
       setUsingMockData(false)
       setLastUpdated(new Date())
 
+      const businessesWithData = businessMetrics.filter(b => b.total_slots !== undefined).length
+      
       toast({
         title: isManualRefresh ? "Manual Refresh Complete" : "Data Loaded",
-        description: `Loaded data for ${businessMetrics.length} businesses${startDate ? ` from ${startDate} to ${endDate}` : ''}`,
+        description: `Loaded data for ${businessesWithData}/${businessMetrics.length} businesses (${actualStartDate} to ${actualEndDate})`,
       })
 
     } catch (error) {
       console.error('Error loading business data:', error)
-      setUsingMockData(true)
-      setError('Failed to load business data. Using mock data for demonstration.')
+      setError(`Failed to load business data: ${error instanceof Error ? error.message : 'Unknown error'}`)
       
-      // Use mock data
-      const mockBusinesses: Business[] = [
-        {
-          business_id: 'cracked_it',
-          business_name: 'Cracked It',
-          room_count: 4,
-          total_slots: 16192,
-          total_bookings: 8096,
-          utilization_rate: 50.0
-        },
-        {
-          business_id: 'green_light_escape',
-          business_name: 'Green Light Escape',
-          room_count: 6,
-          total_slots: 24288,
-          total_bookings: 14573,
-          utilization_rate: 60.0
-        },
-        {
-          business_id: 'iescape_rooms',
-          business_name: 'iEscape Rooms',
-          room_count: 4,
-          total_slots: 16192,
-          total_bookings: 8096,
-          utilization_rate: 50.0
-        },
-        {
-          business_id: 'the_exit_games',
-          business_name: 'The Exit Games',
-          room_count: 6,
-          total_slots: 24288,
-          total_bookings: 19430,
-          utilization_rate: 80.0
-        }
-      ]
-
-      const mockRooms: Room[] = [
-        // Cracked It rooms
-        { room_id: 'RT!1', room_name: 'Rat Trap!', business_name: 'Cracked It', total_slots: 4048, booked_slots: 2024, utilization_rate: 50.0 },
-        { room_id: 'PS4', room_name: 'Project Skylabd', business_name: 'Cracked It', total_slots: 4048, booked_slots: 2834, utilization_rate: 70.0 },
-        { room_id: 'MU3', room_name: 'Murder University', business_name: 'Cracked It', total_slots: 4048, booked_slots: 1619, utilization_rate: 40.0 },
-        { room_id: 'NBNW2', room_name: 'New Blood, New World', business_name: 'Cracked It', total_slots: 4048, booked_slots: 1619, utilization_rate: 40.0 },
-        
-        // Green Light Escape rooms
-        { room_id: 'K!1', room_name: 'Kidnapped!', business_name: 'Green Light Escape', total_slots: 4048, booked_slots: 2429, utilization_rate: 60.0 },
-        { room_id: 'CITW2', room_name: 'Cabin in the Woods', business_name: 'Green Light Escape', total_slots: 4048, booked_slots: 2834, utilization_rate: 70.0 },
-        { room_id: 'TA3', room_name: 'The Attic', business_name: 'Green Light Escape', total_slots: 4048, booked_slots: 2024, utilization_rate: 50.0 },
-        { room_id: 'JL4', room_name: 'Jurassic Labs', business_name: 'Green Light Escape', total_slots: 4048, booked_slots: 3643, utilization_rate: 90.0 },
-        { room_id: 'AE5', room_name: 'Alien Escape', business_name: 'Green Light Escape', total_slots: 4048, booked_slots: 2024, utilization_rate: 50.0 },
-        { room_id: 'BH6', room_name: 'Brewery Heist', business_name: 'Green Light Escape', total_slots: 4048, booked_slots: 1619, utilization_rate: 40.0 },
-        
-        // iEscape Rooms
-        { room_id: 'CLV1', room_name: 'CLUEVIE', business_name: 'iEscape Rooms', total_slots: 4048, booked_slots: 2024, utilization_rate: 50.0 },
-        { room_id: 'DNR2', room_name: 'DONOR', business_name: 'iEscape Rooms', total_slots: 4048, booked_slots: 2834, utilization_rate: 70.0 },
-        { room_id: 'GMS3', room_name: 'GAME SHOW Live!', business_name: 'iEscape Rooms', total_slots: 4048, booked_slots: 1619, utilization_rate: 40.0 },
-        { room_id: 'LOT4', room_name: 'LEGEND OF THE TOMB', business_name: 'iEscape Rooms', total_slots: 4048, booked_slots: 3643, utilization_rate: 90.0 },
-        
-        // The Exit Games rooms
-        { room_id: 'WRS3', room_name: 'White Rabbit Society', business_name: 'The Exit Games', total_slots: 4048, booked_slots: 3238, utilization_rate: 80.0 },
-        { room_id: 'FSCH1', room_name: 'Front Street Casino Heist', business_name: 'The Exit Games', total_slots: 4048, booked_slots: 3643, utilization_rate: 90.0 },
-        { room_id: 'ONV6', room_name: 'Outage: No Vacancy', business_name: 'The Exit Games', total_slots: 4048, booked_slots: 2834, utilization_rate: 70.0 },
-        { room_id: 'DGA2', room_name: 'Dog Gone Alley', business_name: 'The Exit Games', total_slots: 4048, booked_slots: 3238, utilization_rate: 80.0 },
-        { room_id: 'HRS5', room_name: 'Hangover at Riddler State', business_name: 'The Exit Games', total_slots: 4048, booked_slots: 3643, utilization_rate: 90.0 },
-        { room_id: 'HNTP4', room_name: 'Hidden Needle Tattoo Parlor', business_name: 'The Exit Games', total_slots: 4048, booked_slots: 3238, utilization_rate: 80.0 }
-      ]
-
-      setBusinesses(mockBusinesses)
-      setRooms(mockRooms)
-      setLastUpdated(new Date())
+      // Don't use mock data - show the actual error
+      setBusinesses([])
+      setRooms([])
+      setUsingMockData(false)
+      
+      toast({
+        title: "Error Loading Data",
+        description: error instanceof Error ? error.message : 'Failed to load business data',
+        variant: "destructive"
+      })
     } finally {
       setLoading(false)
       setRefreshing(false)

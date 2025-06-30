@@ -12,9 +12,22 @@ import {
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { SignOutButton, useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
 export function UserNav() {
   const { user } = useUser();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!isMounted) {
+    return null;
+  }
+
   if (user) {
     return (
       <DropdownMenu>
@@ -56,4 +69,6 @@ export function UserNav() {
       </DropdownMenu>
     );
   }
+
+  return null;
 }
