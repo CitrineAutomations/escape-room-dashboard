@@ -2,6 +2,138 @@ import { supabase, RoomSlot, RoomMetrics, DailyMetrics } from './supabase'
 
 export type { RoomMetrics, DailyMetrics }
 
+// Business hours configuration - define actual operating hours for each business
+// Using exact database names to ensure matching
+const BUSINESS_HOURS = {
+  'Cracked IT': {  // Match database name exactly
+    monday: { open: '15:00', close: '20:00' },    // 3PM - 8PM
+    tuesday: { open: '15:00', close: '20:00' },   // 3PM - 8PM
+    wednesday: { open: '15:00', close: '20:00' }, // 3PM - 8PM
+    thursday: { open: '15:00', close: '20:00' },  // 3PM - 8PM
+    friday: { open: '15:00', close: '21:30' },    // 3PM - 9:30PM
+    saturday: { open: '12:00', close: '21:30' },  // 12PM - 9:30PM
+    sunday: { open: '12:00', close: '20:00' }     // 12PM - 8PM
+  },
+  'Green Light Escape': {
+    monday: { open: '11:00', close: '21:30' },    // 11am - 9:30pm
+    tuesday: { open: '11:00', close: '21:30' },   // 11am - 9:30pm
+    wednesday: { open: '11:00', close: '21:30' }, // 11am - 9:30pm
+    thursday: { open: '11:00', close: '21:30' },  // 11am - 9:30pm
+    friday: { open: '11:00', close: '22:15' },    // 11am - 10:15pm
+    saturday: { open: '11:00', close: '22:15' },  // 11am - 10:15pm
+    sunday: { open: '11:30', close: '20:45' }     // 11:30am - 8:45pm
+  },
+  'iEscape Rooms': {
+    monday: { open: '12:00', close: '24:00' },    // 12:00pm - Midnight
+    tuesday: { open: '12:00', close: '24:00' },   // 12:00pm - Midnight
+    wednesday: { open: '12:00', close: '24:00' }, // 12:00pm - Midnight
+    thursday: { open: '12:00', close: '24:00' },  // 12:00pm - Midnight
+    friday: { open: '12:00', close: '24:00' },    // 12:00pm - Midnight
+    saturday: { open: '12:00', close: '24:00' },  // 12:00pm - Midnight
+    sunday: { open: '12:00', close: '24:00' }     // 12:00pm - Midnight
+  },
+  'The Exit Games': {  // Will handle tab character in normalization
+    monday: null,                                 // CLOSED
+    tuesday: null,                                // CLOSED  
+    wednesday: { open: '14:45', close: '21:15' }, // 2:45PM - 9:15PM
+    thursday: { open: '14:45', close: '21:15' },  // 2:45PM - 9:15PM
+    friday: { open: '14:45', close: '21:15' },    // 2:45PM - 9:15PM
+    saturday: { open: '11:00', close: '22:15' },  // 11:00AM - 10:15PM
+    sunday: { open: '11:15', close: '20:30' }     // 11:15AM - 8:30PM
+  }
+}
+
+/**
+ * Export business hours configuration for easy access/modification
+ */
+export const getBusinessHoursConfig = () => BUSINESS_HOURS
+
+/**
+ * Check if a slot time is within business operating hours
+ */
+function isWithinBusinessHours(slot: RoomSlot): boolean {
+  const businessName = slot.business_name
+  const slotDate = new Date(slot.booking_date)
+  const dayOfWeek = slotDate.getDay() // 0 = Sunday, 1 = Monday, etc.
+  const slotTime = slot.hour.substring(0, 5) // Extract HH:MM format
+  
+  // Map day of week to business hours key
+  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+  const dayName = dayNames[dayOfWeek] as keyof typeof BUSINESS_HOURS['Cracked It']
+  
+  // Find business hours configuration (try different name variations)
+  let businessHours = null
+  const normalizedSlotBusinessName = EscapeRoomService.normalizeBusinessName(businessName)
+  
+  for (const [configName, hours] of Object.entries(BUSINESS_HOURS)) {
+    const normalizedConfigName = EscapeRoomService.normalizeBusinessName(configName)
+    if (normalizedSlotBusinessName === normalizedConfigName) {
+      businessHours = hours
+      console.log(`✅ Matched business hours for "${businessName}" using config "${configName}"`)
+      break
+    }
+  }
+  
+  // If no exact match, try some common variations
+  if (!businessHours) {
+    const variations = [
+      businessName.replace(/\bIT\b/g, 'It'),  // IT -> It
+      businessName.replace(/\bIt\b/g, 'IT'),  // It -> IT
+      businessName + 's',                      // Add plural
+      businessName.replace(/s$/, ''),          // Remove plural
+    ]
+    
+    for (const variation of variations) {
+      const normalizedVariation = EscapeRoomService.normalizeBusinessName(variation)
+      for (const [configName, hours] of Object.entries(BUSINESS_HOURS)) {
+        if (normalizedVariation === EscapeRoomService.normalizeBusinessName(configName)) {
+          businessHours = hours
+          console.log(`✅ Matched business hours for "${businessName}" using variation "${variation}" -> config "${configName}"`)
+          break
+        }
+      }
+      if (businessHours) break
+    }
+  }
+  
+  if (!businessHours) {
+    console.warn(`⚠️ No business hours configured for: ${businessName}`)
+    return true // If no hours configured, include all slots
+  }
+  
+  const dayHours = businessHours[dayName]
+  if (!dayHours) {
+    console.log(`🚫 ${businessName} is CLOSED on ${dayName}`)
+    return false
+  }
+  if (dayHours === null) {
+    console.log(`🚫 ${businessName} is CLOSED on ${dayName}`)
+    return false
+  }
+  
+  // Convert times to minutes for easier comparison
+  const timeToMinutes = (time: string) => {
+    const [hours, minutes] = time.split(':').map(Number)
+    // Handle midnight as 24:00
+    if (hours === 24) {
+      return 24 * 60 + minutes
+    }
+    return hours * 60 + minutes
+  }
+  
+  const slotMinutes = timeToMinutes(slotTime)
+  const openMinutes = timeToMinutes(dayHours.open)
+  const closeMinutes = timeToMinutes(dayHours.close)
+  
+  const isOpen = slotMinutes >= openMinutes && slotMinutes <= closeMinutes
+  
+  if (!isOpen) {
+    console.log(`🚫 Filtering out slot for ${businessName} at ${slotTime} on ${dayNames[dayOfWeek]} (open: ${dayHours.open}-${dayHours.close})`)
+  }
+  
+  return isOpen
+}
+
 // Mock data for fallback when database is not available
 const mockRoomSlots: RoomSlot[] = [
   // Cracked It rooms
@@ -228,7 +360,8 @@ const mockRoomSlots: RoomSlot[] = [
     is_available: false,
     available_slots: 0,
     room_name: 'Hidden Needle Tattoo Parlor',
-    business_name: 'The Exit Games'
+    business_name: 'The Exit Games',
+    scrape_timestamp: '2025-03-01T11:00:00.000Z'
   }
 ]
 
@@ -242,7 +375,16 @@ const mockBusinesses = [
 export class EscapeRoomService {
   // Helper method to normalize business names for comparison
   static normalizeBusinessName(name: string): string {
-    return name.trim().toLowerCase().replace(/\s+/g, ' ')
+    return name
+      .trim()                    // Remove leading/trailing whitespace
+      .replace(/\t/g, '')        // Remove tab characters
+      .replace(/\s+/g, ' ')      // Normalize multiple spaces to single space
+      .toLowerCase()             // Convert to lowercase for comparison
+  }
+
+  // Get business hours configuration
+  static getBusinessHoursConfig() {
+    return BUSINESS_HOURS
   }
   // Fetch all room slots for a date range
   static async getRoomSlots(startDate?: string, endDate?: string, businessName?: string): Promise<RoomSlot[]> {
@@ -304,15 +446,20 @@ export class EscapeRoomService {
         }
       })
 
-      // Convert back to array and sort
-      const result = Array.from(latestSlots.values())
-        .sort((a, b) => {
-          const dateCompare = a.booking_date.localeCompare(b.booking_date)
-          if (dateCompare !== 0) return dateCompare
-          return a.hour.localeCompare(b.hour)
-        })
+      // Convert back to array and apply business hours filtering
+      const allSlots = Array.from(latestSlots.values())
+      
+      // Filter by business operating hours
+      const businessHoursFiltered = allSlots.filter(slot => isWithinBusinessHours(slot))
+      
+      // Sort the filtered results
+      const result = businessHoursFiltered.sort((a, b) => {
+        const dateCompare = a.booking_date.localeCompare(b.booking_date)
+        if (dateCompare !== 0) return dateCompare
+        return a.hour.localeCompare(b.hour)
+      })
 
-      console.log(`✅ Filtered room slots: ${result.length} of ${data.length} slots from expected businesses`)
+      console.log(`✅ Filtered room slots: ${result.length} of ${data.length} slots (${allSlots.length} after business filtering, ${businessHoursFiltered.length} after hours filtering)`)
 
       return result
     } catch (error) {
@@ -380,8 +527,9 @@ export class EscapeRoomService {
     ]
     
     try {
+      // Get unique rooms from Room Slots table since Rooms table doesn't exist
       let query = supabase
-        .from('Rooms')
+        .from('Room Slots')
         .select('room_id, room_name, business_name')
         .order('room_name')
 
@@ -396,8 +544,28 @@ export class EscapeRoomService {
         throw error
       }
 
+      if (!data || data.length === 0) {
+        console.log('No room data found in Room Slots table')
+        return []
+      }
+
+      // Extract unique rooms (deduplicate by room_id)
+      const uniqueRooms = new Map<string, any>()
+      
+      data.forEach(slot => {
+        if (!uniqueRooms.has(slot.room_id)) {
+          uniqueRooms.set(slot.room_id, {
+            room_id: slot.room_id,
+            room_name: slot.room_name,
+            business_name: slot.business_name
+          })
+        }
+      })
+
+      const allRooms = Array.from(uniqueRooms.values())
+
       // Filter to only include rooms from expected businesses (flexible matching)
-      const filteredData = (data || []).filter(room => 
+      const filteredData = allRooms.filter(room => 
         expectedBusinessVariations.some(variations => 
           variations.some(variation => 
             this.normalizeBusinessName(room.business_name) === this.normalizeBusinessName(variation)
@@ -405,8 +573,9 @@ export class EscapeRoomService {
         )
       )
 
-      console.log(`✅ Filtered rooms: ${filteredData.length} of ${data?.length || 0} rooms`)
-      console.log('Raw rooms from DB (unique business names):', Array.from(new Set(data?.map(r => r.business_name) || [])))
+      console.log(`✅ Filtered rooms: ${filteredData.length} of ${allRooms.length} unique rooms`)
+      console.log('Raw rooms from DB (unique business names):', Array.from(new Set(allRooms.map(r => r.business_name))))
+      console.log('Filtered rooms business names:', Array.from(new Set(filteredData.map(r => r.business_name))))
 
       return filteredData
     } catch (error) {

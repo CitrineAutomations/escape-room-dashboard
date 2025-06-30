@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { Users, Clock, RefreshCw, ArrowLeft, MapPin, Phone, Activity, BarChart3, AlertTriangle, CheckCircle, ArrowUp, ArrowDown } from 'lucide-react'
+import { Users, Clock, RefreshCw, ArrowLeft, MapPin, Phone, Activity, BarChart3, AlertTriangle, CheckCircle, ArrowUp, ArrowDown, Calendar, Building } from 'lucide-react'
 import { format } from 'date-fns'
 import { DateRangePicker } from '@/components/date-range-picker'
 import type { DateRange } from 'react-day-picker'
@@ -15,6 +15,83 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { EscapeRoomService } from '@/lib/escape-room-service'
+
+// Helper functions for business hours and operating status
+const getBusinessHours = (businessName: string) => {
+  const config = EscapeRoomService.getBusinessHoursConfig()
+  const normalizedName = EscapeRoomService.normalizeBusinessName(businessName)
+  
+  for (const [configName, hours] of Object.entries(config)) {
+    if (EscapeRoomService.normalizeBusinessName(configName) === normalizedName) {
+      return { businessName: configName, hours }
+    }
+  }
+  return null
+}
+
+const isCurrentlyOpen = (businessHours: any) => {
+  if (!businessHours) return false
+  
+  const now = new Date()
+  const dayOfWeek = now.getDay() // 0 = Sunday, 1 = Monday, etc.
+  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+  const dayName = dayNames[dayOfWeek] as keyof typeof businessHours.hours
+  
+  const todayHours = businessHours.hours[dayName]
+  if (!todayHours || todayHours === null) {
+    return false // Closed today
+  }
+  
+  const currentTime = now.getHours() * 60 + now.getMinutes()
+  const [openHour, openMin] = todayHours.open.split(':').map(Number)
+  const [closeHour, closeMin] = todayHours.close.split(':').map(Number)
+  
+  const openTime = openHour * 60 + openMin
+  let closeTime = closeHour * 60 + closeMin
+  
+  // Handle midnight (24:00)
+  if (closeHour === 24) {
+    closeTime = 24 * 60
+  }
+  
+  return currentTime >= openTime && currentTime <= closeTime
+}
+
+const formatBusinessHours = (hours: any) => {
+  if (!hours) return null
+  
+  const days = [
+    { key: 'monday', label: 'Mon' },
+    { key: 'tuesday', label: 'Tue' },
+    { key: 'wednesday', label: 'Wed' },
+    { key: 'thursday', label: 'Thu' },
+    { key: 'friday', label: 'Fri' },
+    { key: 'saturday', label: 'Sat' },
+    { key: 'sunday', label: 'Sun' }
+  ]
+  
+  const formatTime = (time: string) => {
+    if (time === '24:00') return '12:00 AM'
+    const [hour, min] = time.split(':').map(Number)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour
+    return `${displayHour}:${min.toString().padStart(2, '0')} ${ampm}`
+  }
+  
+  return days.map(day => {
+    const dayHours = hours[day.key as keyof typeof hours]
+    if (!dayHours || dayHours === null) {
+      return { day: day.label, status: 'CLOSED' }
+    }
+    
+    return {
+      day: day.label,
+      status: 'OPEN',
+      open: formatTime(dayHours.open),
+      close: formatTime(dayHours.close)
+    }
+  })
+}
 
 export default function BusinessDashboard() {
   const params = useParams()
@@ -52,6 +129,11 @@ export default function BusinessDashboard() {
 
   const { toast } = useToast()
 
+  // Business hours and operating status
+  const businessHours = getBusinessHours(businessName)
+  const isOpen = isCurrentlyOpen(businessHours)
+  const formattedHours = formatBusinessHours(businessHours?.hours)
+
   // Auto-refresh every 5 minutes (300000ms) to match scraping frequency
   const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000
 
@@ -77,7 +159,7 @@ export default function BusinessDashboard() {
       
       if (roomsData && roomsData.length > 0) {
         console.log('🏠 Sample room data:', roomsData[0])
-        console.log('🏠 Unique business names in rooms:', [...new Set(roomsData.map(r => r.business_name))])
+        console.log('🏠 Unique business names in rooms:', Array.from(new Set(roomsData.map(r => r.business_name))))
       } else {
         console.log('⚠️ No rooms data found for business:', businessName)
         console.log('🔍 This might indicate a business name mismatch between URL and database')
@@ -95,7 +177,7 @@ export default function BusinessDashboard() {
       
       if (slotsData && slotsData.length > 0) {
         console.log('📋 Sample slot data:', slotsData[0])
-        console.log('📋 Unique business names in slots:', [...new Set(slotsData.map(s => s.business_name))])
+        console.log('📋 Unique business names in slots:', Array.from(new Set(slotsData.map(s => s.business_name))))
       } else {
         console.log('⚠️ No room slots data found for business:', businessName)
         console.log('🔍 Try checking if the business name matches exactly in the database')
@@ -371,6 +453,58 @@ export default function BusinessDashboard() {
           {refreshing ? 'Refreshing...' : 'Refresh Data'}
         </Button>
       </div>
+
+      {/* Business Hours & Operating Status */}
+      {businessHours && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Operating Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Building className="h-4 w-4" />
+                <span>Operating Status</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center space-x-2 mb-2">
+                <div className={`w-3 h-3 rounded-full ${isOpen ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                <span className={`font-semibold ${isOpen ? 'text-green-600' : 'text-red-600'}`}>
+                  {isOpen ? 'Currently Open' : 'Currently Closed'}
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                All displayed data is filtered to show only slots during business operating hours (EST).
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Business Hours */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Calendar className="h-4 w-4" />
+                <span>Business Hours (EST)</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1">
+                {formattedHours?.map((dayInfo, index) => (
+                  <div key={index} className="flex justify-between items-center text-sm">
+                    <span className="font-medium">{dayInfo.day}</span>
+                    {dayInfo.status === 'CLOSED' ? (
+                      <Badge variant="secondary" className="text-xs">CLOSED</Badge>
+                    ) : (
+                      <span className="text-muted-foreground">
+                        {dayInfo.open} - {dayInfo.close}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Real-time Metrics */}
       <div className="grid gap-4 md:grid-cols-3">

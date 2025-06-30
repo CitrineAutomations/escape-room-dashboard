@@ -62,10 +62,24 @@ export default function AIAssistantPage() {
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [n8nWebhookUrl, setN8nWebhookUrl] = useState('')
+  const [isWebhookSaved, setIsWebhookSaved] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const { toast } = useToast()
+
+  // Load saved webhook URL from localStorage on component mount
+  useEffect(() => {
+    const savedWebhookUrl = localStorage.getItem('n8n-webhook-url')
+    if (savedWebhookUrl) {
+      setN8nWebhookUrl(savedWebhookUrl)
+      setIsWebhookSaved(true)
+    } else {
+      // Set default webhook URL
+      const defaultUrl = 'https://escaperooms.app.n8n.cloud/webhook-test/9437ada2-f85f-4dc0-8294-b2e2d9ff1ea6'
+      setN8nWebhookUrl(defaultUrl)
+    }
+  }, [])
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -76,6 +90,41 @@ export default function AIAssistantPage() {
       }
     }
   }, [messages])
+
+  // Save webhook URL to localStorage
+  const saveWebhookUrl = () => {
+    if (n8nWebhookUrl.trim()) {
+      localStorage.setItem('n8n-webhook-url', n8nWebhookUrl.trim())
+      setIsWebhookSaved(true)
+      toast({
+        title: "Webhook URL Saved",
+        description: "Your N8N webhook URL has been saved successfully.",
+      })
+    } else {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid webhook URL.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Clear saved webhook URL
+  const clearWebhookUrl = () => {
+    localStorage.removeItem('n8n-webhook-url')
+    setN8nWebhookUrl('')
+    setIsWebhookSaved(false)
+    toast({
+      title: "Webhook URL Cleared",
+      description: "Your saved webhook URL has been removed.",
+    })
+  }
+
+  // Handle webhook URL input change
+  const handleWebhookUrlChange = (value: string) => {
+    setN8nWebhookUrl(value)
+    setIsWebhookSaved(false) // Mark as unsaved when changed
+  }
 
   const sendMessage = async (query: string) => {
     if (!query.trim() || isLoading) return
@@ -103,8 +152,8 @@ export default function AIAssistantPage() {
 
       setMessages(prev => [...prev, loadingMessage])
 
-      // N8N webhook URL
-      const webhookUrl = n8nWebhookUrl || 'http://localhost:5678/webhook/ai-assistant'
+      // N8N webhook URL - use saved URL or fallback to default
+      const webhookUrl = n8nWebhookUrl || 'https://escaperooms.app.n8n.cloud/webhook-test/9437ada2-f85f-4dc0-8294-b2e2d9ff1ea6'
       
       // Add timeout to fetch request
       const controller = new AbortController()
@@ -193,11 +242,11 @@ Would you like to try the suggested queries or explore the demo features?`,
             content: `I encountered an error processing your request: ${error instanceof Error ? error.message : 'Unknown error'}. 
 
 Please make sure:
-• N8N workflow is running at ${n8nWebhookUrl || 'http://localhost:5678/webhook/ai-assistant'}
+• N8N workflow is running at ${webhookUrl}
 • Webhook endpoint is accessible
 • Network connection is stable
 
-You can update the webhook URL in the input field above if using a different N8N instance.`,
+You can update the webhook URL in the configuration section above if needed.`,
             timestamp: new Date(),
             status: 'error'
           }]
@@ -269,22 +318,75 @@ You can update the webhook URL in the input field above if using a different N8N
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            To use this AI assistant, you need to set up an N8N workflow. 
-            <strong> Default webhook: http://localhost:5678/webhook/ai-assistant</strong>
-            <br />
-            Configure your webhook URL below if different:
+            To use this AI assistant, you need an active N8N workflow. 
+            {isWebhookSaved ? (
+              <>
+                <strong className="text-green-600"> ✓ Webhook URL configured and saved</strong>
+                <br />
+                Current URL: <code className="text-sm bg-muted px-1 rounded">{n8nWebhookUrl}</code>
+              </>
+            ) : (
+              <>
+                <strong> Configure your N8N webhook URL below:</strong>
+              </>
+            )}
           </AlertDescription>
         </Alert>
 
         {/* Webhook URL Configuration */}
-        <div className="flex gap-2">
-          <Input
-            placeholder="N8N Webhook URL (optional - defaults to localhost:5678)"
-            value={n8nWebhookUrl}
-            onChange={(e) => setN8nWebhookUrl(e.target.value)}
-            className="flex-1"
-          />
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              N8N Webhook Configuration
+            </CardTitle>
+            <CardDescription>
+              Set up your N8N webhook URL to enable AI-powered database queries
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter your N8N webhook URL..."
+                  value={n8nWebhookUrl}
+                  onChange={(e) => handleWebhookUrlChange(e.target.value)}
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={saveWebhookUrl}
+                  disabled={!n8nWebhookUrl.trim() || isWebhookSaved}
+                  variant={isWebhookSaved ? "secondary" : "default"}
+                >
+                  {isWebhookSaved ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Saved
+                    </>
+                  ) : (
+                    "Save"
+                  )}
+                </Button>
+                {isWebhookSaved && (
+                  <Button 
+                    onClick={clearWebhookUrl}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
+              
+              {!isWebhookSaved && (
+                <div className="text-sm text-muted-foreground">
+                  <p>💡 <strong>Your webhook URL:</strong> https://escaperooms.app.n8n.cloud/webhook-test/9437ada2-f85f-4dc0-8294-b2e2d9ff1ea6</p>
+                  <p>Click "Save" to store this URL in your browser for future sessions.</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Main Content */}
         <div className="flex gap-6">

@@ -1,0 +1,300 @@
+{
+  "name": "Escape Room AI Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "9437ada2-f85f-4dc0-8294-b2e2d9ff1ea6",
+        "options": {}
+      },
+      "id": "f0b42c8c-7f9a-4f2b-8b0e-1a2b3c4d5e6f",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "9437ada2-f85f-4dc0-8294-b2e2d9ff1ea6"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "messageValues": [
+            {
+              "role": "system",
+              "message": "You are an AI assistant that converts natural language questions about escape room business data into SQL queries. You have access to the following database schema:\n\n**Tables:**\n1. **Room Slots** - Contains booking data with columns:\n   - room_id (text): Unique room identifier\n   - room_name (text): Name of the escape room\n   - business_name (text): Business name (Cracked IT, Green Light Escape, iEscape Rooms, The Exit Games)\n   - booking_date (date): Date of the slot\n   - hour (time): Time slot\n   - available_slots (integer): Number of available slots\n   - is_available (boolean): Whether the slot is available\n   - scrape_timestamp (timestamp): When data was collected\n   - scrape_id (text): Unique scrape identifier\n\n2. **Business Location** - Contains business info:\n   - business_name (text): Business name\n   - business_id (text): Unique business identifier\n\n**Business Names (exact matching required):**\n- \"Cracked IT\" (also appears as \"Cracked It\")\n- \"Green Light Escape\"\n- \"iEscape Rooms\"\n- \"The Exit Games\" (may have tab character)\n\n**Business Hours (all times EST):**\n- Cracked IT: Mon-Thu 3PM-8PM, Fri 3PM-9:30PM, Sat-Sun 12PM-8PM/9:30PM\n- Green Light Escape: Mon-Thu 11AM-9:30PM, Fri-Sat 11AM-10:15PM, Sun 11:30AM-8:45PM\n- iEscape Rooms: Daily 12PM-Midnight\n- The Exit Games: Mon-Tue CLOSED, Wed-Fri 2:45PM-9:15PM, Sat 11AM-10:15PM, Sun 11:15AM-8:30PM\n\n**Instructions:**\n1. Convert the user's natural language question into a PostgreSQL query\n2. Use proper PostgreSQL syntax\n3. Focus on the Room Slots table for most queries\n4. For date ranges, use DATE() function or proper date comparisons\n5. For time-based queries, consider business hours\n6. Calculate utilization as: (total_slots - available_slots) / total_slots * 100\n7. Always use the latest scrape data (MAX(scrape_timestamp) or recent dates)\n8. Return only the SQL query without explanation unless specifically asked\n9. For business name filtering, use ILIKE for flexible matching\n10. Consider aggregations for summary statistics\n\n**Common query patterns:**\n- Utilization rates: Calculate booking percentage\n- Availability: Show open slots\n- Business performance: Compare metrics across businesses\n- Time trends: Group by date/time periods\n- Room popularity: Count bookings per room\n\nRespond with just the SQL query that answers their question."
+            },
+            {
+              "role": "user",
+              "message": "={{ $json.query }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3,
+          "maxTokens": 1000
+        }
+      },
+      "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      "name": "OpenAI Query Generator",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "1",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.message.content }}",
+        "options": {}
+      },
+      "id": "b2c3d4e5-f6g7-8901-2345-678901bcdefg",
+      "name": "Supabase Query",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "1",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "messageValues": [
+            {
+              "role": "system",
+              "message": "You are an AI assistant that interprets database query results for escape room business owners. \n\nYour job is to:\n1. Take the SQL query results and format them into a clear, business-friendly response\n2. Provide insights and analysis where appropriate\n3. Use proper formatting with bullet points, numbers, and clear structure\n4. Include relevant business metrics and percentages\n5. Highlight key findings and trends\n6. Suggest actionable insights when possible\n7. Format numbers appropriately (percentages, currency if applicable)\n8. Use business terminology rather than technical database terms\n\n**Context:** The user asked: \"{{ $node['Webhook'].json.query }}\"\n**SQL Query Used:** {{ $node['OpenAI Query Generator'].json.message.content }}\n**Query Results:** {{ JSON.stringify($json) }}\n\nProvide a comprehensive, business-focused interpretation of these results."
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 1500
+        }
+      },
+      "id": "c3d4e5f6-g7h8-9012-3456-789012cdefgh",
+      "name": "OpenAI Response Formatter",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [
+        900,
+        300
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "1",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": {
+          "success": true,
+          "query": "={{ $node['Webhook'].json.query }}",
+          "sql_query": "={{ $node['OpenAI Query Generator'].json.message.content }}",
+          "raw_data": "={{ $node['Supabase Query'].json }}",
+          "response": "={{ $node['OpenAI Response Formatter'].json.message.content }}",
+          "timestamp": "={{ new Date().toISOString() }}",
+          "data_points": "={{ $node['Supabase Query'].json.length || 0 }}"
+        },
+        "options": {}
+      },
+      "id": "d4e5f6g7-h8i9-0123-4567-890123defghi",
+      "name": "Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "messageValues": [
+            {
+              "role": "system",
+              "message": "The user asked a question about escape room data, but there was an error processing their request. Provide a helpful error message that:\n1. Acknowledges the issue\n2. Suggests what might have gone wrong\n3. Offers alternative suggestions\n4. Maintains a helpful, professional tone\n\nUser's original question: {{ $node['Webhook'].json.query }}\nError details: {{ $json.error || 'Unknown error occurred' }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.5,
+          "maxTokens": 500
+        }
+      },
+      "id": "e5f6g7h8-i9j0-1234-5678-901234efghij",
+      "name": "Error Handler",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [
+        680,
+        500
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "1",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": {
+          "success": false,
+          "query": "={{ $node['Webhook'].json.query }}",
+          "error": "={{ $json.error || 'Processing error occurred' }}",
+          "response": "={{ $json.message?.content || 'I apologize, but I encountered an error processing your request. Please try rephrasing your question or contact support.' }}",
+          "timestamp": "={{ new Date().toISOString() }}"
+        },
+        "options": {}
+      },
+      "id": "f6g7h8i9-j0k1-2345-6789-012345fghijk",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        900,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.query }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "g7h8i9j0-k1l2-3456-7890-123456ghijkl",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        350,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "OpenAI Query Generator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Query Generator": {
+      "main": [
+        [
+          {
+            "node": "Supabase Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Query": {
+      "main": [
+        [
+          {
+            "node": "OpenAI Response Formatter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Response Formatter": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "timezone": "America/New_York"
+  },
+  "versionId": "1",
+  "id": "escape-room-ai-assistant",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": [
+    {
+      "createdAt": "2024-01-20T00:00:00.000Z",
+      "updatedAt": "2024-01-20T00:00:00.000Z",
+      "id": "1",
+      "name": "AI Assistant"
+    },
+    {
+      "createdAt": "2024-01-20T00:00:00.000Z",
+      "updatedAt": "2024-01-20T00:00:00.000Z",
+      "id": "2",
+      "name": "Escape Rooms"
+    }
+  ]
+} 

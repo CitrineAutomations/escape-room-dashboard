@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Building, Users, Clock, TrendingUp, ArrowRight, MapPin, Search, Filter, SortAsc, SortDesc, CalendarDays, RefreshCw } from 'lucide-react'
+import { Building, Users, Clock, TrendingUp, ArrowRight, MapPin, Search, Filter, SortAsc, SortDesc, CalendarDays, RefreshCw, Activity } from 'lucide-react'
 import { EscapeRoomService } from '@/lib/escape-room-service'
 import { useToast } from '@/hooks/use-toast'
 import { Toaster } from '@/components/ui/toaster'
@@ -17,6 +17,46 @@ import { DateRangePicker } from '@/components/date-range-picker'
 import type { DateRange } from 'react-day-picker'
 import { format } from 'date-fns'
 import PageContainer from '@/components/layout/page-container'
+
+// Helper function to check if business is currently open
+const isBusinessCurrentlyOpen = (businessName: string) => {
+  const config = EscapeRoomService.getBusinessHoursConfig()
+  const normalizedName = EscapeRoomService.normalizeBusinessName(businessName)
+  
+  let businessHours = null
+  for (const [configName, hours] of Object.entries(config)) {
+    if (EscapeRoomService.normalizeBusinessName(configName) === normalizedName) {
+      businessHours = hours
+      break
+    }
+  }
+  
+  if (!businessHours) return null // Unknown status
+  
+  const now = new Date()
+  const dayOfWeek = now.getDay() // 0 = Sunday, 1 = Monday, etc.
+  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+  const dayName = dayNames[dayOfWeek] as keyof typeof businessHours
+  
+  const todayHours = businessHours[dayName]
+  if (!todayHours || todayHours === null) {
+    return false // Closed today
+  }
+  
+  const currentTime = now.getHours() * 60 + now.getMinutes()
+  const [openHour, openMin] = todayHours.open.split(':').map(Number)
+  const [closeHour, closeMin] = todayHours.close.split(':').map(Number)
+  
+  const openTime = openHour * 60 + openMin
+  let closeTime = closeHour * 60 + closeMin
+  
+  // Handle midnight (24:00)
+  if (closeHour === 24) {
+    closeTime = 24 * 60
+  }
+  
+  return currentTime >= openTime && currentTime <= closeTime
+}
 
 interface Business {
   business_id: string
@@ -555,6 +595,18 @@ export default function BusinessesPage() {
                           <Badge variant={getUtilizationBadgeVariant(business.utilization_rate || 0)}>
                             {getUtilizationLabel(business.utilization_rate || 0)}
                           </Badge>
+                          {(() => {
+                            const isOpen = isBusinessCurrentlyOpen(business.business_name)
+                            if (isOpen === null) return null
+                            return (
+                              <div className="flex items-center gap-1">
+                                <div className={`w-2 h-2 rounded-full ${isOpen ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                <span className={`text-xs font-medium ${isOpen ? 'text-green-600' : 'text-red-600'}`}>
+                                  {isOpen ? 'Open' : 'Closed'}
+                                </span>
+                              </div>
+                            )
+                          })()}
                         </div>
                         <CardDescription className="mt-1">
                           {business.room_count} rooms • {business.total_slots !== undefined ? business.total_slots.toLocaleString() : 'N/A'} total slots
