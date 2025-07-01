@@ -134,243 +134,7 @@ function isWithinBusinessHours(slot: RoomSlot): boolean {
   return isOpen
 }
 
-// Mock data for fallback when database is not available
-const mockRoomSlots: RoomSlot[] = [
-  // Cracked It rooms
-  {
-    id: 1,
-    room_id: 'RT!1',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: false,
-    available_slots: 0,
-    room_name: 'Rat Trap!',
-    business_name: 'Cracked IT',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 2,
-    room_id: 'PS4',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: true,
-    available_slots: 3,
-    room_name: 'Project Skylabd',
-    business_name: 'Cracked IT',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 3,
-    room_id: 'MU3',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: true,
-    available_slots: 6,
-    room_name: 'Murder University',
-    business_name: 'Cracked IT',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 4,
-    room_id: 'NBNW2',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: false,
-    available_slots: 0,
-    room_name: 'New Blood, New World',
-    business_name: 'Cracked IT',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  
-  // Green Light Escape rooms
-  {
-    id: 5,
-    room_id: 'K!1',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: false,
-    available_slots: 0,
-    room_name: 'Kidnapped!',
-    business_name: 'Green Light Escape',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 6,
-    room_id: 'CITW2',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: true,
-    available_slots: 2,
-    room_name: 'Cabin in the Woods',
-    business_name: 'Green Light Escape',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 7,
-    room_id: 'TA3',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: true,
-    available_slots: 4,
-    room_name: 'The Attic',
-    business_name: 'Green Light Escape',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 8,
-    room_id: 'JL4',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: false,
-    available_slots: 0,
-    room_name: 'Jurassic Labs',
-    business_name: 'Green Light Escape',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 9,
-    room_id: 'AE5',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: true,
-    available_slots: 5,
-    room_name: 'Alien Escape',
-    business_name: 'Green Light Escape',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 10,
-    room_id: 'BH6',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: true,
-    available_slots: 6,
-    room_name: 'Brewery Heist',
-    business_name: 'Green Light Escape',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  
-  // iEscape Rooms
-  {
-    id: 11,
-    room_id: 'CLV1',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: false,
-    available_slots: 0,
-    room_name: 'CLUEVIE',
-    business_name: 'iEscape Rooms',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 12,
-    room_id: 'DNR2',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: true,
-    available_slots: 3,
-    room_name: 'DONOR',
-    business_name: 'iEscape Rooms',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 13,
-    room_id: 'GMS3',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: true,
-    available_slots: 6,
-    room_name: 'GAME SHOW Live!',
-    business_name: 'iEscape Rooms',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 14,
-    room_id: 'LOT4',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: false,
-    available_slots: 0,
-    room_name: 'LEGEND OF THE TOMB',
-    business_name: 'iEscape Rooms',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  
-  // The Exit Games rooms
-  {
-    id: 15,
-    room_id: 'WRS3',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: false,
-    available_slots: 0,
-    room_name: 'White Rabbit Society',
-    business_name: 'The Exit Games',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 16,
-    room_id: 'FSCH1',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: false,
-    available_slots: 0,
-    room_name: 'Front Street Casino Heist',
-    business_name: 'The Exit Games',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 17,
-    room_id: 'ONV6',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: true,
-    available_slots: 2,
-    room_name: 'Outage: No Vacancy',
-    business_name: 'The Exit Games',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 18,
-    room_id: 'DGA2',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: false,
-    available_slots: 0,
-    room_name: 'Dog Gone Alley',
-    business_name: 'The Exit Games',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 19,
-    room_id: 'HRS5',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: false,
-    available_slots: 0,
-    room_name: 'Hangover at Riddler State',
-    business_name: 'The Exit Games',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  },
-  {
-    id: 20,
-    room_id: 'HNTP4',
-    booking_date: '2025-03-01',
-    hour: '11:00:00',
-    is_available: false,
-    available_slots: 0,
-    room_name: 'Hidden Needle Tattoo Parlor',
-    business_name: 'The Exit Games',
-    scrape_timestamp: '2025-03-01T11:00:00.000Z'
-  }
-]
-
-const mockBusinesses = [
-  { business_id: 'cracked_it', business_name: 'Cracked IT' },
-  { business_id: 'green_light_escape', business_name: 'Green Light Escape' },
-  { business_id: 'iescape_rooms', business_name: 'iEscape Rooms' },
-  { business_id: 'the_exit_games', business_name: 'The Exit Games' }
-]
+// PRODUCTION: All data comes from Supabase database - no mock data
 
 export class EscapeRoomService {
   // Helper method to normalize business names for comparison
@@ -463,14 +227,8 @@ export class EscapeRoomService {
 
       return result
     } catch (error) {
-      console.warn('Database connection failed, using mock data:', error)
-      // Return mock data when database is not available
-      return mockRoomSlots.filter(slot => {
-        if (businessName && businessName !== 'all') {
-          return slot.business_name === businessName
-        }
-        return true
-      })
+      console.error('❌ PRODUCTION ERROR: Failed to fetch room slots from database:', error)
+      throw new Error(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -511,8 +269,8 @@ export class EscapeRoomService {
 
       return filteredData
     } catch (error) {
-      console.warn('Database connection failed, using mock business data:', error)
-      return mockBusinesses
+      console.error('❌ PRODUCTION ERROR: Failed to fetch business locations from database:', error)
+      throw new Error(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -579,42 +337,8 @@ export class EscapeRoomService {
 
       return filteredData
     } catch (error) {
-      console.warn('Database connection failed, using mock room data:', error)
-      // Return mock rooms based on the slots we have
-      const mockRooms = [
-        // Cracked IT rooms
-        { room_id: 'RT!1', room_name: 'Rat Trap!', business_name: 'Cracked IT' },
-        { room_id: 'PS4', room_name: 'Project Skylabd', business_name: 'Cracked IT' },
-        { room_id: 'MU3', room_name: 'Murder University', business_name: 'Cracked IT' },
-        { room_id: 'NBNW2', room_name: 'New Blood, New World', business_name: 'Cracked IT' },
-        
-        // Green Light Escape rooms
-        { room_id: 'K!1', room_name: 'Kidnapped!', business_name: 'Green Light Escape' },
-        { room_id: 'CITW2', room_name: 'Cabin in the Woods', business_name: 'Green Light Escape' },
-        { room_id: 'TA3', room_name: 'The Attic', business_name: 'Green Light Escape' },
-        { room_id: 'JL4', room_name: 'Jurassic Labs', business_name: 'Green Light Escape' },
-        { room_id: 'AE5', room_name: 'Alien Escape', business_name: 'Green Light Escape' },
-        { room_id: 'BH6', room_name: 'Brewery Heist', business_name: 'Green Light Escape' },
-        
-        // iEscape Rooms
-        { room_id: 'CLV1', room_name: 'CLUEVIE', business_name: 'iEscape Rooms' },
-        { room_id: 'DNR2', room_name: 'DONOR', business_name: 'iEscape Rooms' },
-        { room_id: 'GMS3', room_name: 'GAME SHOW Live!', business_name: 'iEscape Rooms' },
-        { room_id: 'LOT4', room_name: 'LEGEND OF THE TOMB', business_name: 'iEscape Rooms' },
-        
-        // The Exit Games rooms
-        { room_id: 'WRS3', room_name: 'White Rabbit Society', business_name: 'The Exit Games' },
-        { room_id: 'FSCH1', room_name: 'Front Street Casino Heist', business_name: 'The Exit Games' },
-        { room_id: 'ONV6', room_name: 'Outage: No Vacancy', business_name: 'The Exit Games' },
-        { room_id: 'DGA2', room_name: 'Dog Gone Alley', business_name: 'The Exit Games' },
-        { room_id: 'HRS5', room_name: 'Hangover at Riddler State', business_name: 'The Exit Games' },
-        { room_id: 'HNTP4', room_name: 'Hidden Needle Tattoo Parlor', business_name: 'The Exit Games' }
-      ]
-      
-      if (businessName && businessName !== 'all') {
-        return mockRooms.filter(room => room.business_name === businessName)
-      }
-      return mockRooms
+      console.error('❌ PRODUCTION ERROR: Failed to fetch rooms from database:', error)
+      throw new Error(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
