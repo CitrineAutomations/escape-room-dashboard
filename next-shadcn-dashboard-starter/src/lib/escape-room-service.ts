@@ -59,7 +59,7 @@ function isWithinBusinessHours(slot: RoomSlot): boolean {
   
   // Map day of week to business hours key
   const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-  const dayName = dayNames[dayOfWeek] as keyof typeof BUSINESS_HOURS['Cracked It']
+  const dayName = dayNames[dayOfWeek] as keyof typeof BUSINESS_HOURS['Cracked IT']
   
   // Find business hours configuration (try different name variations)
   let businessHours = null
@@ -145,7 +145,7 @@ const mockRoomSlots: RoomSlot[] = [
     is_available: false,
     available_slots: 0,
     room_name: 'Rat Trap!',
-    business_name: 'Cracked It',
+    business_name: 'Cracked IT',
     scrape_timestamp: '2025-03-01T11:00:00.000Z'
   },
   {
@@ -156,7 +156,7 @@ const mockRoomSlots: RoomSlot[] = [
     is_available: true,
     available_slots: 3,
     room_name: 'Project Skylabd',
-    business_name: 'Cracked It',
+    business_name: 'Cracked IT',
     scrape_timestamp: '2025-03-01T11:00:00.000Z'
   },
   {
@@ -167,7 +167,7 @@ const mockRoomSlots: RoomSlot[] = [
     is_available: true,
     available_slots: 6,
     room_name: 'Murder University',
-    business_name: 'Cracked It',
+    business_name: 'Cracked IT',
     scrape_timestamp: '2025-03-01T11:00:00.000Z'
   },
   {
@@ -178,7 +178,7 @@ const mockRoomSlots: RoomSlot[] = [
     is_available: false,
     available_slots: 0,
     room_name: 'New Blood, New World',
-    business_name: 'Cracked It',
+    business_name: 'Cracked IT',
     scrape_timestamp: '2025-03-01T11:00:00.000Z'
   },
   
@@ -366,7 +366,7 @@ const mockRoomSlots: RoomSlot[] = [
 ]
 
 const mockBusinesses = [
-  { business_id: 'cracked_it', business_name: 'Cracked It' },
+  { business_id: 'cracked_it', business_name: 'Cracked IT' },
   { business_id: 'green_light_escape', business_name: 'Green Light Escape' },
   { business_id: 'iescape_rooms', business_name: 'iEscape Rooms' },
   { business_id: 'the_exit_games', business_name: 'The Exit Games' }
@@ -582,11 +582,11 @@ export class EscapeRoomService {
       console.warn('Database connection failed, using mock room data:', error)
       // Return mock rooms based on the slots we have
       const mockRooms = [
-        // Cracked It rooms
-        { room_id: 'RT!1', room_name: 'Rat Trap!', business_name: 'Cracked It' },
-        { room_id: 'PS4', room_name: 'Project Skylabd', business_name: 'Cracked It' },
-        { room_id: 'MU3', room_name: 'Murder University', business_name: 'Cracked It' },
-        { room_id: 'NBNW2', room_name: 'New Blood, New World', business_name: 'Cracked It' },
+        // Cracked IT rooms
+        { room_id: 'RT!1', room_name: 'Rat Trap!', business_name: 'Cracked IT' },
+        { room_id: 'PS4', room_name: 'Project Skylabd', business_name: 'Cracked IT' },
+        { room_id: 'MU3', room_name: 'Murder University', business_name: 'Cracked IT' },
+        { room_id: 'NBNW2', room_name: 'New Blood, New World', business_name: 'Cracked IT' },
         
         // Green Light Escape rooms
         { room_id: 'K!1', room_name: 'Kidnapped!', business_name: 'Green Light Escape' },

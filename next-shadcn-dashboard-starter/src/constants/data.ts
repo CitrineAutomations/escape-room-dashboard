@@ -26,7 +26,7 @@ export const navItems: NavItem[] = [
         shortcut: ['b', 'a']
       },
       {
-        title: 'Cracked It',
+        title: 'Cracked IT',
         url: '/dashboard/businesses/Cracked%20It',
         icon: 'settings',
         shortcut: ['b', 'c']
