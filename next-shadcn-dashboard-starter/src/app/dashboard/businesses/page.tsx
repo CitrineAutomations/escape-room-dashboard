@@ -121,6 +121,17 @@ export default function BusinessesPage() {
         EscapeRoomService.getRooms()
       ])
       console.log(`✅ Fetched ${businessData.length} businesses and ${roomData.length} rooms`)
+      console.log('Business names from Business Location table:', businessData.map(b => `"${b.business_name}"`))
+      console.log('Business names from Room Slots table:', Array.from(new Set(roomData.map(r => `"${r.business_name}"`))))
+      
+      // Debug business-to-room matching
+      businessData.forEach(business => {
+        const matchingRooms = roomData.filter(room => 
+          EscapeRoomService.normalizeBusinessName(room.business_name) === 
+          EscapeRoomService.normalizeBusinessName(business.business_name)
+        )
+        console.log(`🔍 Business "${business.business_name}" matches ${matchingRooms.length} rooms:`, matchingRooms.map(r => r.room_name))
+      })
 
       // Check if we have any data at all
       if (businessData.length === 0) {
@@ -212,7 +223,10 @@ export default function BusinessesPage() {
             
             return {
               ...business,
-              room_count: roomData.filter(room => room.business_name === business.business_name).length,
+              room_count: roomData.filter(room => 
+                EscapeRoomService.normalizeBusinessName(room.business_name) === 
+                EscapeRoomService.normalizeBusinessName(business.business_name)
+              ).length,
               total_slots: totalSlots,
               total_bookings: bookedSlots,
               utilization_rate: utilizationRate
@@ -221,7 +235,10 @@ export default function BusinessesPage() {
             console.error(`❌ Failed to get data for ${business.business_name}:`, error)
             return {
               ...business,
-              room_count: roomData.filter(room => room.business_name === business.business_name).length,
+              room_count: roomData.filter(room => 
+                EscapeRoomService.normalizeBusinessName(room.business_name) === 
+                EscapeRoomService.normalizeBusinessName(business.business_name)
+              ).length,
               total_slots: undefined,
               total_bookings: undefined,
               utilization_rate: undefined
@@ -595,7 +612,10 @@ export default function BusinessesPage() {
             </Card>
           ) : (
             filteredAndSortedBusinesses.map((business) => {
-              const businessRooms = rooms.filter(room => room.business_name === business.business_name)
+              const businessRooms = rooms.filter(room => 
+                EscapeRoomService.normalizeBusinessName(room.business_name) === 
+                EscapeRoomService.normalizeBusinessName(business.business_name)
+              )
               
               return (
                 <Card key={business.business_id} className="hover:shadow-lg transition-shadow">
