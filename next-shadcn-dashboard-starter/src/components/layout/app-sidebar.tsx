@@ -16,11 +16,13 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarRail
+  SidebarRail,
+  useSidebar
 } from '@/components/ui/sidebar';
 import { navItems } from '@/constants/data';
 import {
-  IconChevronRight
+  IconChevronRight,
+  IconDashboard
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -28,12 +30,26 @@ import { Icons } from '../icons';
 
 export default function AppSidebar() {
   const pathname = usePathname();
+  const { state } = useSidebar();
 
   return (
     <Sidebar collapsible='icon'>
       <SidebarHeader>
-        <div className="p-4">
-          <h2 className="text-lg font-semibold">Escape Room Dashboard</h2>
+        <div className="p-4 flex items-center gap-2">
+          {state === 'collapsed' ? (
+            <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-md">
+              <IconDashboard className="h-5 w-5 text-primary-foreground" />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-md">
+                <IconDashboard className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <h2 className="text-lg font-semibold transition-opacity duration-200">
+                Escape Room Dashboard
+              </h2>
+            </div>
+          )}
         </div>
       </SidebarHeader>
       <SidebarContent className='overflow-x-hidden'>
