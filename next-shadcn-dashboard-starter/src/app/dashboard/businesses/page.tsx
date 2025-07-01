@@ -104,7 +104,7 @@ export default function BusinessesPage() {
 
   const { toast } = useToast()
 
-  const loadBusinessData = useCallback(async (isManualRefresh = false) => {
+  const loadBusinessData = useCallback(async (isManualRefresh = false, customDateRange?: DateRange) => {
     try {
       setError(null)
       if (isManualRefresh) {
@@ -159,25 +159,33 @@ export default function BusinessesPage() {
       console.log(`📅 Available data range: ${earliestDate} to ${latestDate}`)
       console.log(`📅 Sample slots: ${sampleSlots.length}`)
 
+      // Use the provided date range or the current state
+      const currentDateRange = customDateRange || dateRange
+      
       // Use flexible date filtering - if user's range is outside available data, use available range
-      let actualStartDate = dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : earliestDate
-      let actualEndDate = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : latestDate
+      let actualStartDate = currentDateRange.from ? format(currentDateRange.from, 'yyyy-MM-dd') : earliestDate
+      let actualEndDate = currentDateRange.to ? format(currentDateRange.to, 'yyyy-MM-dd') : latestDate
 
       // If this is the first load or user's date range is outside available data, use available range
-      if (!dateRange.from || !dateRange.to || actualStartDate > latestDate || actualEndDate < earliestDate) {
-        if (dateRange.from || dateRange.to) {
+      const isInitialLoad = !customDateRange && (!currentDateRange.from || !currentDateRange.to)
+      const isOutsideRange = actualStartDate > latestDate || actualEndDate < earliestDate
+      
+      if (isInitialLoad || isOutsideRange) {
+        if (!isInitialLoad) {
           console.warn(`⚠️ User date range (${actualStartDate} to ${actualEndDate}) is outside available data range (${earliestDate} to ${latestDate})`)
         }
         actualStartDate = earliestDate
         actualEndDate = latestDate
         
-        // Update the date range picker to show the actual available range
-        setDateRange({
-          from: new Date(earliestDate),
-          to: new Date(latestDate)
-        })
+        // Only update date range on initial load to prevent loops
+        if (isInitialLoad) {
+          setDateRange({
+            from: new Date(earliestDate),
+            to: new Date(latestDate)
+          })
+        }
         
-        if (dateRange.from || dateRange.to) {
+        if (!isInitialLoad) {
           toast({
             title: "Date Range Adjusted",
             description: `Using available data range: ${earliestDate} to ${latestDate}`,
@@ -282,11 +290,19 @@ export default function BusinessesPage() {
       setLoading(false)
       setRefreshing(false)
     }
-  }, [dateRange, toast])
+  }, [toast])
 
+  // Initial data load
   useEffect(() => {
     loadBusinessData()
-  }, [loadBusinessData])
+  }, [])
+
+  // Reload data when date range changes (but not on initial load)
+  useEffect(() => {
+    if (dateRange.from || dateRange.to) {
+      loadBusinessData(false, dateRange)
+    }
+  }, [dateRange.from, dateRange.to])
 
   // Manual refresh handler
   const handleManualRefresh = () => {
@@ -296,6 +312,7 @@ export default function BusinessesPage() {
   // Date range change handler
   const handleDateRangeChange = (range: DateRange) => {
     setDateRange(range)
+    // Data will automatically reload via the useEffect that watches dateRange.from and dateRange.to
   }
 
   // Filtered and sorted businesses
