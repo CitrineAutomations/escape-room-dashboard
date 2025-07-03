@@ -135,6 +135,14 @@ export class EscapeRoomService {
       .replace(/\t/g, '')        // Remove tab characters
       .replace(/\s+/g, ' ')      // Normalize multiple spaces to single space
       .toLowerCase()             // Convert to lowercase for comparison
+      .replace(/!+/g, '')        // Remove exclamation marks
+      .replace(/\bescape games?\b/g, '') // Remove "escape games" or "escape game"
+      .replace(/\bescape rooms?\b/g, '')  // Remove "escape rooms" or "escape room"
+      .replace(/\bescape\b/g, '') // Remove standalone "escape"
+      .replace(/\bgames?\b/g, '') // Remove standalone "games" or "game"
+      .replace(/\brooms?\b/g, '') // Remove standalone "rooms" or "room"
+      .replace(/\s+/g, ' ')      // Clean up multiple spaces again
+      .trim()                    // Final trim
   }
 
   // Get business hours configuration
@@ -152,7 +160,7 @@ export class EscapeRoomService {
           .from('Room Slots')
           .select('*')
           .order('scrape_timestamp', { ascending: false })
-          .limit(10000) // Reduced from 20000 to prevent overwhelming the database
+          .limit(20000) // Increased to handle 14,823+ records
 
         if (startDate) {
           query = query.gte('booking_date', startDate)
@@ -210,8 +218,9 @@ export class EscapeRoomService {
         // Convert back to array and apply business hours filtering
         const allSlots = Array.from(latestSlots.values())
         
-        // Filter by business operating hours
-        const businessHoursFiltered = allSlots.filter(slot => isWithinBusinessHours(slot))
+        // Filter by business operating hours - TEMPORARILY DISABLED FOR TESTING
+        // const businessHoursFiltered = allSlots.filter(slot => isWithinBusinessHours(slot))
+        const businessHoursFiltered = allSlots // SHOW ALL HOURS FOR TESTING
         
         // Sort the filtered results
         const result = businessHoursFiltered.sort((a, b) => {
@@ -277,7 +286,7 @@ export class EscapeRoomService {
           .from('Room Slots')
           .select('room_id, room_name, business_name')
           .order('room_name')
-          .limit(10000) // Reduced from 20000
+          .limit(20000) // Increased to handle 14,823+ records
 
         if (error) {
           console.error(`Error fetching rooms (attempt ${attempt}/${maxRetries}):`, error)
