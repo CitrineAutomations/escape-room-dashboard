@@ -159,6 +159,46 @@ export default function DebugDataPage() {
   }
 
   useEffect(() => {
+    const debugBusinessNames = async () => {
+      try {
+        console.log('🔍 Debugging business names in database...')
+        
+        // Get raw business names from Business Location table
+        const { data: businessLocations, error: businessError } = await supabase
+          .from('Business Location')
+          .select('business_name, business_id')
+        
+        if (businessError) {
+          console.error('Error fetching business locations:', businessError)
+        } else {
+          console.log('📍 Raw business names from Business Location table:', businessLocations?.map(b => `"${b.business_name}"`))
+        }
+        
+        // Get raw business names from Room Slots table
+        const { data: roomSlots, error: slotsError } = await supabase
+          .from('Room Slots')
+          .select('business_name')
+          .limit(100)
+        
+        if (slotsError) {
+          console.error('Error fetching room slots:', slotsError)
+        } else {
+          const uniqueBusinessNames = Array.from(new Set(roomSlots?.map(r => r.business_name)))
+          console.log('🎯 Raw business names from Room Slots table:', uniqueBusinessNames.map(name => `"${name}"`))
+          
+          // Show character analysis
+          uniqueBusinessNames.forEach(name => {
+            console.log(`📝 Business name analysis: "${name}" (length: ${name.length})`)
+            console.log('   Character codes:', name.split('').map((char: string) => `${char}(${char.charCodeAt(0)})`).join(' '))
+          })
+        }
+        
+      } catch (error) {
+        console.error('Error debugging business names:', error)
+      }
+    }
+
+    debugBusinessNames()
     runDebugTests()
   }, [])
 

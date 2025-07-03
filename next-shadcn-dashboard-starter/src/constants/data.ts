@@ -52,14 +52,6 @@ export const navItems: NavItem[] = [
     ]
   },
   {
-    title: 'AI Assistant',
-    url: '/dashboard/ai-assistant',
-    icon: 'brain',
-    isActive: false,
-    shortcut: ['a', 'i'],
-    items: [] // No child items
-  },
-  {
     title: 'Account',
     url: '#', // Placeholder as there is no direct link for the parent
     icon: 'billing',

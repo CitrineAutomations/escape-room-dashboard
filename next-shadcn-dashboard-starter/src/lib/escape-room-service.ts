@@ -152,14 +152,6 @@ export class EscapeRoomService {
   }
   // Fetch all room slots for a date range
   static async getRoomSlots(startDate?: string, endDate?: string, businessName?: string): Promise<RoomSlot[]> {
-    // Define the expected businesses with common variations
-    const expectedBusinessVariations = [
-      ['Cracked It', 'Cracked IT', 'cracked it', 'cracked-it'],
-      ['Green Light Escape', 'green light escape', 'green-light-escape'],
-      ['iEscape Rooms', 'I Escape', 'iescape rooms', 'i-escape'],
-      ['The Exit Games', 'Exit Games', 'the exit games', 'exit-games']
-    ]
-    
     try {
       // First, get all data with filters
       let query = supabase
@@ -188,14 +180,8 @@ export class EscapeRoomService {
         return []
       }
 
-      // Filter to only include slots from expected businesses (flexible matching)
-      const filteredData = data.filter(slot => 
-        expectedBusinessVariations.some(variations => 
-          variations.some(variation => 
-            this.normalizeBusinessName(slot.business_name) === this.normalizeBusinessName(variation)
-          )
-        )
-      )
+      // Use all data - no hard-coded business filtering
+      const filteredData = data
 
       // Get only the latest scrape data for each unique slot (room_id + booking_date + hour)
       const latestSlots = new Map<string, RoomSlot>()
@@ -234,14 +220,6 @@ export class EscapeRoomService {
 
   // Get business locations from the room_slots data
   static async getBusinessLocations() {
-    // Define the expected businesses with common variations
-    const expectedBusinessVariations = [
-      ['Cracked It', 'Cracked IT', 'cracked it', 'cracked-it'],
-      ['Green Light Escape', 'green light escape', 'green-light-escape'],
-      ['iEscape Rooms', 'I Escape', 'iescape rooms', 'i-escape'],
-      ['The Exit Games', 'Exit Games', 'the exit games', 'exit-games']
-    ]
-    
     try {
       // Get unique businesses from the Business Location table
       const { data, error } = await supabase
@@ -254,18 +232,11 @@ export class EscapeRoomService {
         throw error
       }
 
-      // Filter to only include expected businesses (flexible matching)
-      const filteredData = (data || []).filter(business => 
-        expectedBusinessVariations.some(variations => 
-          variations.some(variation => 
-            this.normalizeBusinessName(business.business_name) === this.normalizeBusinessName(variation)
-          )
-        )
-      )
+      // Use all businesses - no hard-coded filtering
+      const filteredData = data || []
 
-      console.log(`✅ Filtered business locations: ${filteredData.length} of ${data?.length || 0} businesses`)
-      console.log('Raw businesses from DB:', data?.map(b => b.business_name))
-      console.log('Filtered businesses:', filteredData.map(b => b.business_name))
+      console.log(`✅ All business locations: ${filteredData.length} businesses`)
+      console.log('Businesses from DB:', filteredData.map(b => b.business_name))
 
       return filteredData
     } catch (error) {
@@ -276,14 +247,6 @@ export class EscapeRoomService {
 
   // Get rooms from the room_slots data
   static async getRooms(businessName?: string) {
-    // Define the expected businesses with common variations
-    const expectedBusinessVariations = [
-      ['Cracked It', 'Cracked IT', 'cracked it', 'cracked-it'],
-      ['Green Light Escape', 'green light escape', 'green-light-escape'],
-      ['iEscape Rooms', 'I Escape', 'iescape rooms', 'i-escape'],
-      ['The Exit Games', 'Exit Games', 'the exit games', 'exit-games']
-    ]
-    
     try {
       // Get unique rooms from Room Slots table since Rooms table doesn't exist
       let query = supabase
@@ -322,18 +285,11 @@ export class EscapeRoomService {
 
       const allRooms = Array.from(uniqueRooms.values())
 
-      // Filter to only include rooms from expected businesses (flexible matching)
-      const filteredData = allRooms.filter(room => 
-        expectedBusinessVariations.some(variations => 
-          variations.some(variation => 
-            this.normalizeBusinessName(room.business_name) === this.normalizeBusinessName(variation)
-          )
-        )
-      )
+      // Use all rooms - no hard-coded filtering
+      const filteredData = allRooms
 
-      console.log(`✅ Filtered rooms: ${filteredData.length} of ${allRooms.length} unique rooms`)
-      console.log('Raw rooms from DB (unique business names):', Array.from(new Set(allRooms.map(r => r.business_name))))
-      console.log('Filtered rooms business names:', Array.from(new Set(filteredData.map(r => r.business_name))))
+      console.log(`✅ All rooms: ${filteredData.length} unique rooms`)
+      console.log('All rooms business names:', Array.from(new Set(filteredData.map(r => r.business_name))))
 
       return filteredData
     } catch (error) {
