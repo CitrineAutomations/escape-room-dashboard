@@ -107,11 +107,8 @@ export default function BusinessDashboard() {
       'Green Light Escape': 'Green Light Escape' // Ensure consistent naming
     }
     const mapped = mapping[name] || name
-    console.log(`🔄 Business name mapping: "${name}" -> "${mapped}"`)
     return mapped
   }
-  
-  console.log('🔍 Decoded business name:', JSON.stringify(businessName)) // Debug log
   
   const [businessInfo, setBusinessInfo] = useState<any>(null)
   const [rooms, setRooms] = useState<any[]>([])
@@ -120,7 +117,7 @@ export default function BusinessDashboard() {
   const [refreshing, setRefreshing] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [dateRange, setDateRange] = useState<DateRange>({
-    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+    from: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000), // 120 days ago (to include March data)
     to: new Date()
   })
   const [operatingHours, setOperatingHours] = useState<any>(null)
@@ -145,60 +142,55 @@ export default function BusinessDashboard() {
         setLoading(true)
       }
 
-      console.log('🔍 Looking for business:', businessName)
-      console.log('🔍 Raw URL parameter:', params.businessId)
-      console.log('🔍 Expected businesses: Cracked It, Green Light Escape, iEscape Rooms, The Exit Games')
-
       // Use business name from URL directly
       setBusinessInfo({ business_name: businessName })
 
-      // Get rooms for this business using EscapeRoomService (includes filtering)
-      console.log('🔍 Fetching rooms for business:', businessName)
-      const roomsData = await EscapeRoomService.getRooms(businessName)
-      console.log('✅ Rooms found:', roomsData?.length || 0, 'rooms')
-      
-      if (roomsData && roomsData.length > 0) {
-        console.log('🏠 Sample room data:', roomsData[0])
-        console.log('🏠 Unique business names in rooms:', Array.from(new Set(roomsData.map(r => r.business_name))))
-      } else {
-        console.log('⚠️ No rooms data found for business:', businessName)
-        console.log('🔍 This might indicate a business name mismatch between URL and database')
-      }
+      // Get ALL rooms then filter using normalized business name matching
+      const allRoomsData = await EscapeRoomService.getRooms() // Get all rooms
+      const roomsData = allRoomsData.filter(room => 
+        EscapeRoomService.normalizeBusinessName(room.business_name) === 
+        EscapeRoomService.normalizeBusinessName(businessName)
+      )
       
       setRooms(roomsData || [])
 
-      // Get room slots data with date filtering using EscapeRoomService (includes filtering)
+      // Get ALL room slots with date filtering, then filter using normalized business name matching
       const startDate = dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined
       const endDate = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined
 
-      console.log(`🔍 Fetching room slots for ${businessName} (${startDate} to ${endDate})`)
-      const slotsData = await EscapeRoomService.getRoomSlots(startDate, endDate, businessName)
-      console.log('✅ Room slots found:', slotsData?.length || 0, 'slots')
-      
-      if (slotsData && slotsData.length > 0) {
-        console.log('📋 Sample slot data:', slotsData[0])
-        console.log('📋 Unique business names in slots:', Array.from(new Set(slotsData.map(s => s.business_name))))
-      } else {
-        console.log('⚠️ No room slots data found for business:', businessName)
-        console.log('🔍 Try checking if the business name matches exactly in the database')
-      }
+      const allSlotsData = await EscapeRoomService.getRoomSlots(undefined, undefined) // TEMP: Remove date filtering to see all data
+      const slotsData = allSlotsData.filter(slot => 
+        EscapeRoomService.normalizeBusinessName(slot.business_name) === 
+        EscapeRoomService.normalizeBusinessName(businessName)
+      )
       
       setRoomSlots(slotsData || [])
 
-      // Get operating hours analysis
+      // Get operating hours analysis using normalized business name matching
       try {
         const [operatingHoursData, expansionOpportunitiesData, morningEveningTrendsData] = await Promise.all([
-          EscapeRoomService.getOperatingHoursAnalysis(businessName, startDate, endDate),
-          EscapeRoomService.getExpansionOpportunities(businessName, startDate, endDate),
-          EscapeRoomService.getMorningEveningTrends(businessName, startDate, endDate)
+          EscapeRoomService.getOperatingHoursAnalysis(undefined, startDate, endDate), // Get all, then filter
+          EscapeRoomService.getExpansionOpportunities(undefined, startDate, endDate), // Get all, then filter
+          EscapeRoomService.getMorningEveningTrends(undefined, startDate, endDate) // Get all, then filter
         ])
 
-        const businessOperatingHours = operatingHoursData.find(b => b.business_name === businessName)
+        // Filter using normalized business name matching
+        const businessOperatingHours = operatingHoursData.find(b => 
+          EscapeRoomService.normalizeBusinessName(b.business_name) === 
+          EscapeRoomService.normalizeBusinessName(businessName)
+        )
         setOperatingHours(businessOperatingHours)
-        setExpansionOpportunities(expansionOpportunitiesData.filter(o => o.business_name === businessName))
-        setMorningEveningTrends(morningEveningTrendsData.filter(t => t.business_name === businessName))
         
-        console.log('✅ Operating hours analysis completed')
+        setExpansionOpportunities(expansionOpportunitiesData.filter(o => 
+          EscapeRoomService.normalizeBusinessName(o.business_name) === 
+          EscapeRoomService.normalizeBusinessName(businessName)
+        ))
+        
+        setMorningEveningTrends(morningEveningTrendsData.filter(t => 
+          EscapeRoomService.normalizeBusinessName(t.business_name) === 
+          EscapeRoomService.normalizeBusinessName(businessName)
+        ))
+        
       } catch (error) {
         console.error('⚠️ Error loading operating hours analysis:', error)
         // Don't fail the whole load if this fails
@@ -278,8 +270,6 @@ export default function BusinessDashboard() {
       availableCapacity
     }
   }
-
-
 
   // Calculate room performance with capacity insights
   const calculateRoomPerformance = () => {

@@ -69,7 +69,6 @@ function isWithinBusinessHours(slot: RoomSlot): boolean {
     const normalizedConfigName = EscapeRoomService.normalizeBusinessName(configName)
     if (normalizedSlotBusinessName === normalizedConfigName) {
       businessHours = hours
-      console.log(`✅ Matched business hours for "${businessName}" using config "${configName}"`)
       break
     }
   }
@@ -88,7 +87,6 @@ function isWithinBusinessHours(slot: RoomSlot): boolean {
       for (const [configName, hours] of Object.entries(BUSINESS_HOURS)) {
         if (normalizedVariation === EscapeRoomService.normalizeBusinessName(configName)) {
           businessHours = hours
-          console.log(`✅ Matched business hours for "${businessName}" using variation "${variation}" -> config "${configName}"`)
           break
         }
       }
@@ -97,17 +95,14 @@ function isWithinBusinessHours(slot: RoomSlot): boolean {
   }
   
   if (!businessHours) {
-    console.warn(`⚠️ No business hours configured for: ${businessName}`)
     return true // If no hours configured, include all slots
   }
   
   const dayHours = businessHours[dayName]
   if (!dayHours) {
-    console.log(`🚫 ${businessName} is CLOSED on ${dayName}`)
     return false
   }
   if (dayHours === null) {
-    console.log(`🚫 ${businessName} is CLOSED on ${dayName}`)
     return false
   }
   
@@ -126,10 +121,6 @@ function isWithinBusinessHours(slot: RoomSlot): boolean {
   const closeMinutes = timeToMinutes(dayHours.close)
   
   const isOpen = slotMinutes >= openMinutes && slotMinutes <= closeMinutes
-  
-  if (!isOpen) {
-    console.log(`🚫 Filtering out slot for ${businessName} at ${slotTime} on ${dayNames[dayOfWeek]} (open: ${dayHours.open}-${dayHours.close})`)
-  }
   
   return isOpen
 }
@@ -152,70 +143,102 @@ export class EscapeRoomService {
   }
   // Fetch all room slots for a date range
   static async getRoomSlots(startDate?: string, endDate?: string, businessName?: string): Promise<RoomSlot[]> {
-    try {
-      // First, get all data with filters
-      let query = supabase
-        .from('Room Slots')
-        .select('*')
-        .order('scrape_timestamp', { ascending: false })
+    const maxRetries = 3
+    const baseDelay = 1000 // 1 second
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        let query = supabase
+          .from('Room Slots')
+          .select('*')
+          .order('scrape_timestamp', { ascending: false })
+          .limit(10000) // Reduced from 20000 to prevent overwhelming the database
 
-      if (startDate) {
-        query = query.gte('booking_date', startDate)
-      }
-      if (endDate) {
-        query = query.lte('booking_date', endDate)
-      }
-      if (businessName && businessName !== 'all') {
-        query = query.eq('business_name', businessName)
-      }
-
-      const { data, error } = await query
-
-      if (error) {
-        console.error('Error fetching room slots:', error)
-        throw error
-      }
-
-      if (!data || data.length === 0) {
-        return []
-      }
-
-      // Use all data - no hard-coded business filtering
-      const filteredData = data
-
-      // Get only the latest scrape data for each unique slot (room_id + booking_date + hour)
-      const latestSlots = new Map<string, RoomSlot>()
-      
-      filteredData.forEach(slot => {
-        const key = `${slot.room_id}_${slot.booking_date}_${slot.hour}`
-        const existing = latestSlots.get(key)
-        
-        // Keep the slot with the most recent scrape_timestamp
-        if (!existing || slot.scrape_timestamp > existing.scrape_timestamp) {
-          latestSlots.set(key, slot)
+        if (startDate) {
+          query = query.gte('booking_date', startDate)
         }
-      })
+        if (endDate) {
+          query = query.lte('booking_date', endDate)
+        }
 
-      // Convert back to array and apply business hours filtering
-      const allSlots = Array.from(latestSlots.values())
-      
-      // Filter by business operating hours
-      const businessHoursFiltered = allSlots.filter(slot => isWithinBusinessHours(slot))
-      
-      // Sort the filtered results
-      const result = businessHoursFiltered.sort((a, b) => {
-        const dateCompare = a.booking_date.localeCompare(b.booking_date)
-        if (dateCompare !== 0) return dateCompare
-        return a.hour.localeCompare(b.hour)
-      })
+        const { data, error } = await query
 
-      console.log(`✅ Filtered room slots: ${result.length} of ${data.length} slots (${allSlots.length} after business filtering, ${businessHoursFiltered.length} after hours filtering)`)
+        if (error) {
+          console.error(`Error fetching room slots (attempt ${attempt}/${maxRetries}):`, error)
+          
+          // If this is the last attempt, throw the error
+          if (attempt === maxRetries) {
+            throw error
+          }
+          
+          // Wait before retrying with exponential backoff
+          const delay = baseDelay * Math.pow(2, attempt - 1)
+          console.log(`Retrying in ${delay}ms...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
+          continue
+        }
 
-      return result
-    } catch (error) {
-      console.error('❌ PRODUCTION ERROR: Failed to fetch room slots from database:', error)
-      throw new Error(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        if (!data || data.length === 0) {
+          return []
+        }
+
+        // Apply business name filtering AFTER fetching, using normalized comparison
+        let filteredData = data
+        if (businessName && businessName !== 'all') {
+          const normalizedSearchName = this.normalizeBusinessName(businessName)
+          
+          filteredData = data.filter(slot => {
+            const slotNormalized = this.normalizeBusinessName(slot.business_name)
+            const matches = slotNormalized === normalizedSearchName
+            return matches
+          })
+        }
+
+        // Get only the latest scrape data for each unique slot (room_id + booking_date + hour)
+        const latestSlots = new Map<string, RoomSlot>()
+        
+        filteredData.forEach(slot => {
+          const key = `${slot.room_id}_${slot.booking_date}_${slot.hour}`
+          const existing = latestSlots.get(key)
+          
+          // Keep the slot with the most recent scrape_timestamp
+          if (!existing || slot.scrape_timestamp > existing.scrape_timestamp) {
+            latestSlots.set(key, slot)
+          }
+        })
+
+        // Convert back to array and apply business hours filtering
+        const allSlots = Array.from(latestSlots.values())
+        
+        // Filter by business operating hours
+        const businessHoursFiltered = allSlots.filter(slot => isWithinBusinessHours(slot))
+        
+        // Sort the filtered results
+        const result = businessHoursFiltered.sort((a, b) => {
+          const dateCompare = a.booking_date.localeCompare(b.booking_date)
+          if (dateCompare !== 0) return dateCompare
+          return a.hour.localeCompare(b.hour)
+        })
+
+        return result
+        
+      } catch (error) {
+        console.error(`❌ PRODUCTION ERROR: Failed to fetch room slots from database (attempt ${attempt}/${maxRetries}):`, error)
+        
+        // If this is the last attempt, throw the error
+        if (attempt === maxRetries) {
+          throw new Error(`Database connection failed after ${maxRetries} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        }
+        
+        // Wait before retrying
+        const delay = baseDelay * Math.pow(2, attempt - 1)
+        console.log(`Retrying in ${delay}ms...`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
     }
+    
+    // This should never be reached, but TypeScript requires it
+    throw new Error('Unexpected error in getRoomSlots')
   }
 
   // Get business locations from the room_slots data
@@ -235,9 +258,6 @@ export class EscapeRoomService {
       // Use all businesses - no hard-coded filtering
       const filteredData = data || []
 
-      console.log(`✅ All business locations: ${filteredData.length} businesses`)
-      console.log('Businesses from DB:', filteredData.map(b => b.business_name))
-
       return filteredData
     } catch (error) {
       console.error('❌ PRODUCTION ERROR: Failed to fetch business locations from database:', error)
@@ -247,55 +267,82 @@ export class EscapeRoomService {
 
   // Get rooms from the room_slots data
   static async getRooms(businessName?: string) {
-    try {
-      // Get unique rooms from Room Slots table since Rooms table doesn't exist
-      let query = supabase
-        .from('Room Slots')
-        .select('room_id, room_name, business_name')
-        .order('room_name')
+    const maxRetries = 3
+    const baseDelay = 1000 // 1 second
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Get unique rooms from Room Slots table since Rooms table doesn't exist
+        const { data, error } = await supabase
+          .from('Room Slots')
+          .select('room_id, room_name, business_name')
+          .order('room_name')
+          .limit(10000) // Reduced from 20000
 
-      if (businessName && businessName !== 'all') {
-        query = query.eq('business_name', businessName)
-      }
+        if (error) {
+          console.error(`Error fetching rooms (attempt ${attempt}/${maxRetries}):`, error)
+          
+          if (attempt === maxRetries) {
+            throw error
+          }
+          
+          // Wait before retrying with exponential backoff
+          const delay = baseDelay * Math.pow(2, attempt - 1)
+          console.log(`Retrying in ${delay}ms...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
+          continue
+        }
 
-      const { data, error } = await query
+        if (!data || data.length === 0) {
+          return []
+        }
 
-      if (error) {
-        console.error('Error fetching rooms:', error)
-        throw error
-      }
+        // Get unique rooms by creating a Map with room_id as key
+        const uniqueRoomsMap = new Map()
+        const allRoomIds = new Set()
+        
+        data.forEach(room => {
+          allRoomIds.add(room.room_id)
+          if (!uniqueRoomsMap.has(room.room_id)) {
+            uniqueRoomsMap.set(room.room_id, {
+              room_id: room.room_id,
+              room_name: room.room_name,
+              business_name: room.business_name
+            })
+          }
+        })
+        
+        let uniqueRooms = Array.from(uniqueRoomsMap.values())
 
-      if (!data || data.length === 0) {
-        console.log('No room data found in Room Slots table')
-        return []
-      }
-
-      // Extract unique rooms (deduplicate by room_id)
-      const uniqueRooms = new Map<string, any>()
-      
-      data.forEach(slot => {
-        if (!uniqueRooms.has(slot.room_id)) {
-          uniqueRooms.set(slot.room_id, {
-            room_id: slot.room_id,
-            room_name: slot.room_name,
-            business_name: slot.business_name
+        // Apply business name filtering AFTER fetching, using normalized comparison (same as getRoomSlots)
+        if (businessName && businessName !== 'all') {
+          const normalizedSearchName = this.normalizeBusinessName(businessName)
+          
+          uniqueRooms = uniqueRooms.filter(room => {
+            const roomNormalized = this.normalizeBusinessName(room.business_name)
+            const matches = roomNormalized === normalizedSearchName
+            return matches
           })
         }
-      })
 
-      const allRooms = Array.from(uniqueRooms.values())
-
-      // Use all rooms - no hard-coded filtering
-      const filteredData = allRooms
-
-      console.log(`✅ All rooms: ${filteredData.length} unique rooms`)
-      console.log('All rooms business names:', Array.from(new Set(filteredData.map(r => r.business_name))))
-
-      return filteredData
-    } catch (error) {
-      console.error('❌ PRODUCTION ERROR: Failed to fetch rooms from database:', error)
-      throw new Error(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        return uniqueRooms
+        
+      } catch (error) {
+        console.error(`❌ PRODUCTION ERROR: Failed to fetch rooms from database (attempt ${attempt}/${maxRetries}):`, error)
+        
+        if (attempt === maxRetries) {
+          throw new Error(`Database connection failed after ${maxRetries} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        }
+        
+        // Wait before retrying
+        const delay = baseDelay * Math.pow(2, attempt - 1)
+        console.log(`Retrying in ${delay}ms...`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
     }
+    
+    // This should never be reached, but TypeScript requires it
+    throw new Error('Unexpected error in getRooms')
   }
 
   // Get room-level metrics with proper joins
@@ -530,7 +577,7 @@ export class EscapeRoomService {
         console.log(`📅 Using official hours for ${businessKey}: ${firstHour}:00 - ${lastHour}:00`)
       } else {
         // Fallback to actual booking data hours
-        const hours = Array.from(business.hourly_data.keys()).sort((a: number, b: number) => a - b)
+        const hours = Array.from(business.hourly_data.keys()).map(h => Number(h)).sort((a, b) => a - b)
         firstHour = hours[0]
         lastHour = hours[hours.length - 1]
         console.log(`⚠️ No official hours found for ${businessKey}, using booking data: ${firstHour}:00 - ${lastHour}:00`)
@@ -568,7 +615,7 @@ export class EscapeRoomService {
       }
 
       // Clean up the hourly_data Map for JSON serialization
-      business.hourly_breakdown = Array.from(business.hourly_data.values()).map(data => ({
+      business.hourly_breakdown = Array.from(business.hourly_data.values()).map((data: any) => ({
         hour: data.hour,
         total_slots: data.total_slots,
         booked_slots: data.booked_slots,
@@ -639,7 +686,7 @@ export class EscapeRoomService {
     const morningEveningTrends = await this.getMorningEveningTrends(businessName, startDate, endDate)
     const operatingHours = await this.getOperatingHoursAnalysis(businessName, startDate, endDate)
     
-    const opportunities = []
+    const opportunities: any[] = []
 
     operatingHours.forEach(business => {
       const businessTrends = morningEveningTrends.filter(t => t.business_name === business.business_name)

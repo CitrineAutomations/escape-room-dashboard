@@ -247,17 +247,26 @@ export default function BusinessesPage() {
         })
       )
 
-      // Calculate room metrics
-      const roomMetrics = await Promise.all(
-        roomData.map(async (room) => {
+      // Calculate room metrics efficiently - fetch all room slots once instead of individual calls
+      console.log('📊 Fetching all room slots for metrics calculation...')
+      let roomMetrics: (Room & { total_slots?: number; booked_slots?: number; utilization_rate?: number })[] = []
+      
+      try {
+        // Get all room slots for the date range in one query
+        const allRoomSlots = await EscapeRoomService.getRoomSlots(actualStartDate, actualEndDate)
+        console.log(`📊 Fetched ${allRoomSlots.length} total room slots`)
+        
+        // Calculate metrics for each room using the pre-fetched data
+        roomMetrics = roomData.map((room) => {
           try {
-            // Get room slots for this specific room in the date range
-            const roomSlots = await EscapeRoomService.getRoomSlots(actualStartDate, actualEndDate, room.business_name)
-            const thisRoomSlots = roomSlots.filter(slot => slot.room_id === room.room_id)
+            // Filter slots for this specific room
+            const thisRoomSlots = allRoomSlots.filter(slot => slot.room_id === room.room_id)
             
             const totalSlots = thisRoomSlots.length
             const bookedSlots = thisRoomSlots.filter(slot => !slot.is_available || slot.available_slots === 0).length
             const utilizationRate = totalSlots > 0 ? (bookedSlots / totalSlots) * 100 : 0
+            
+            console.log(`📊 Room ${room.room_name}: ${totalSlots} slots, ${bookedSlots} booked (${utilizationRate.toFixed(1)}% utilization)`)
             
             return {
               ...room,
@@ -266,7 +275,7 @@ export default function BusinessesPage() {
               utilization_rate: utilizationRate
             }
           } catch (error) {
-            console.error(`❌ Failed to get metrics for room ${room.room_name}:`, error)
+            console.error(`❌ Failed to calculate metrics for room ${room.room_name}:`, error)
             return {
               ...room,
               total_slots: undefined,
@@ -275,7 +284,16 @@ export default function BusinessesPage() {
             }
           }
         })
-      )
+      } catch (error) {
+        console.error('❌ Failed to fetch room slots data:', error)
+        // Return rooms with undefined metrics if data fetch fails
+        roomMetrics = roomData.map(room => ({
+          ...room,
+          total_slots: undefined,
+          booked_slots: undefined,
+          utilization_rate: undefined
+        }))
+      }
 
       setBusinesses(businessMetrics)
       setRooms(roomMetrics)
